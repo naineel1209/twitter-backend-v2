@@ -132,6 +132,17 @@ ALTER SEQUENCE public.tweets_id_seq OWNED BY public.tweets.id;
 
 
 --
+-- Name: user_session; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_session (
+    sid character varying NOT NULL,
+    sess json NOT NULL,
+    expire timestamp(6) without time zone NOT NULL
+);
+
+
+--
 -- Name: users; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -140,7 +151,7 @@ CREATE TABLE public.users (
     username character varying(255) NOT NULL,
     name character varying(255) NOT NULL,
     email character varying(255),
-    password text NOT NULL,
+    password text,
     bio text,
     dob date,
     profile_pic text,
@@ -228,6 +239,14 @@ ALTER TABLE ONLY public.schema_migrations
 
 
 --
+-- Name: user_session session_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_session
+    ADD CONSTRAINT session_pkey PRIMARY KEY (sid);
+
+
+--
 -- Name: tweets tweets_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -257,6 +276,13 @@ ALTER TABLE ONLY public.users
 
 ALTER TABLE ONLY public.users
     ADD CONSTRAINT users_username_key UNIQUE (username);
+
+
+--
+-- Name: IDX_session_expire; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "IDX_session_expire" ON public.user_session USING btree (expire);
 
 
 --

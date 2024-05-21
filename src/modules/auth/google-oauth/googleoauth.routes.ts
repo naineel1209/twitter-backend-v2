@@ -1,32 +1,31 @@
 import {Router} from 'express';
 import passport from 'passport';
 import {googleoauthStrategy} from './googleoauth.strategy';
+import {passportDeSerializeCallback, passportSerializeCallback} from "./googleoauth.helper";
 
 const router = Router()
 
 //PATH: /api/auth/google-oauth
 
-//TODO: Cleanup the code here
+//instruct passport to use the Google strategy for 'google'
 passport.use('google', googleoauthStrategy)
-passport.serializeUser((user, done) => {
-    console.log('Serializing User')
-    console.log(user)
 
-    return done(null, user)
-})
+//serialize user will be called when the user is authenticated and the user object is stored in the session
+passport.serializeUser(passportSerializeCallback)
 
 //deserialize user will be called when the user is authenticated and the user object is stored in the session
-passport.deserializeUser((user, done) => {
-    console.log('Deserializing User')
-    console.log(user)
+passport.deserializeUser(passportDeSerializeCallback)
 
-    return done(null, user as Express.User)
-})
-
-router.get('/', passport.authenticate('google'))
+router.get('/', passport.authenticate('google', {
+    accessType: 'offline',
+    prompt: 'consent',
+}))
 
 router.get('/success', (req, res) => {
-    return res.send('Google OAuth Success')
+    return res.send({
+        message: 'Google OAuth Success',
+        user: req.user
+    })
 })
 
 router.get('/failure', (req, res) => {

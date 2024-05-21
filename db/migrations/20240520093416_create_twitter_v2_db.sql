@@ -6,7 +6,7 @@ CREATE TABLE "users" (
   "username" varchar(255) UNIQUE NOT NULL,
   "name" varchar(255) NOT NULL,
   "email" varchar(255) UNIQUE,
-  "password" text NOT NULL,
+  "password" text,
   "bio" text,
   "dob" date,
   "profile_pic" text,
@@ -49,4 +49,4 @@ DROP TABLE "follower_following";
 DROP TABLE "likes";
 DROP TABLE "tweets";
 DROP TABLE "users";
-
+DROP TYPE IF EXISTS "user_login_type" CASCADE;
