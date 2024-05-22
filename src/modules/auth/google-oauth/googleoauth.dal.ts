@@ -1,24 +1,7 @@
-import pg, {PoolClient} from "pg";
-import {IGoogleUserObj} from "./googleoauth.interface";
+import pg, {PoolClient} from 'pg';
+import {IGoogleUserObj} from './googleoauth.interface';
 
 export class GoogleOAuthDal {
-    static async findUserById(client: pg.PoolClient, id: number){
-        try {
-            //1. Write a query to find a user by id
-            const userByIdQuery = {
-                text: 'SELECT * FROM users WHERE id = $1',
-                values: [id]
-            };
-
-            //2. Execute the query
-            const result = await client.query(userByIdQuery)
-
-            //3. Return the user
-            return result.rows[0]
-        } catch (error) {
-            throw error
-        }
-    }
 
     static async findUserByGoogleId(client: pg.PoolClient, googleId: string) {
         try {

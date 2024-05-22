@@ -1,8 +1,9 @@
 import {GoogleCallbackParameters, Profile, Strategy as GoogleStrategy, VerifyCallback} from 'passport-google-oauth20';
 import processEnv from '../../../../constants/env/env.constants';
 import {CALLBACK_URL, GOOGLE_SCOPES} from '../../../../constants/constants';
-import googleoauthService from "./googleoauth.service";
+import googleoauthService from './googleoauth.service';
 
+//google oauth strategy using passportjs
 export const googleoauthStrategy = new GoogleStrategy({
         clientID: processEnv.GOOGLE_CLIENT_ID,
         clientSecret: processEnv.GOOGLE_CLIENT_SECRET,
@@ -13,7 +14,7 @@ export const googleoauthStrategy = new GoogleStrategy({
            refreshToken: string,
            params: GoogleCallbackParameters,
            profile: Profile,
-           done: VerifyCallback,) => {
+           done: VerifyCallback) => {
         try {
             const user = await googleoauthService.findOrCreateGoogleUser(profile, refreshToken)
 

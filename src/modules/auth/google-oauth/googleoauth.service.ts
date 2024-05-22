@@ -1,9 +1,9 @@
-import pool from "../../../../config/pg.config";
-import pg from "pg";
-import {Profile} from "passport-google-oauth20";
-import {GoogleOAuthDal} from "./googleoauth.dal";
-import {UtilsService} from "../../../utils/utils.service";
-import {IGoogleUserObj} from "./googleoauth.interface";
+import pool from '../../../../config/pg.config';
+import pg from 'pg';
+import {Profile} from 'passport-google-oauth20';
+import {GoogleOAuthDal} from './googleoauth.dal';
+import {UtilsService} from '../../../utils/utils.service';
+import {IGoogleUserObj} from './googleoauth.interface';
 
 class GoogleOAuthService {
     private pgPool: pg.Pool;
@@ -23,7 +23,7 @@ class GoogleOAuthService {
                 return userExists
             }
 
-            const googleUserObj:IGoogleUserObj = {
+            const googleUserObj: IGoogleUserObj = {
                 username: await UtilsService.generateUsername(profile.displayName),
                 name: profile.displayName,
                 // @ts-ignore
@@ -37,18 +37,6 @@ class GoogleOAuthService {
 
             //3. If the user does not exist, create the user and return the user
             return await GoogleOAuthDal.createGoogleUser(client, googleUserObj)
-        } catch (error) {
-
-        } finally {
-            client.release()
-        }
-    }
-
-    async findUserById(id: number) {
-        const client = await this.pgPool.connect()
-
-        try {
-            return GoogleOAuthDal.findUserById(client, id)
         } catch (error) {
             throw error
         } finally {

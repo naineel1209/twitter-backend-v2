@@ -1,4 +1,4 @@
-import express from 'express'
+import express, {NextFunction} from 'express'
 import * as http from 'node:http';
 import logger from '../config/winston.config'
 import dotenv from 'dotenv'
@@ -11,6 +11,8 @@ import pgPool from '..//config/pg.config'
 // @ts-ignore
 import connPgSimple from 'connect-pg-simple'
 import morgan from 'morgan'
+import {JoiError} from './errors/joi-error';
+import {passportDeSerializeCallback, passportSerializeCallback} from './modules/auth/auth.helper';
 
 dotenv.config()
 
@@ -47,6 +49,12 @@ app.use(session({
 }))
 app.use(passport.session())
 
+//serialize user will be called when the user is authenticated and the user object is stored in the session
+passport.serializeUser(passportSerializeCallback)
+
+//deserialize user will be called when the user is authenticated and the user object is stored in the session
+passport.deserializeUser(passportDeSerializeCallback)
+
 app.use('/api', indexRouter)
 
 app.use('*', (req, res) => {
@@ -57,16 +65,32 @@ app.use('*', (req, res) => {
     })
 })
 
-async function startServer(): Promise<void> {
+app.use((err: unknown, req: express.Request, res: express.Response, next: NextFunction) => {
+    if (err instanceof JoiError) {
+        logger.error(err.message)
+        return res.status(err.code).json({
+            message: err.message,
+            error: processEnv.NODE_ENV === 'development' ? err.stack : ''
+        })
+    } else if (err instanceof Error) {
+        logger.error(err.message)
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+            message: 'Internal Server Error',
+            error: err.message
+        })
+    }
+})
+
+function startServer(): void {
     const PORT = processEnv.PORT || 3000
 
     server.listen(PORT, () => {
         logger.info(`Server is running at http://localhost:${PORT}`)
     })
 
-    function handleGracefulShutdown() {
+    async function handleGracefulShutdown() {
         logger.info('Received kill signal, shutting down gracefully')
-        pgPool.end() // Close the pg pool
+        await pgPool.end() // Close the pg pool
         server.close(() => {
             logger.info('Closed out remaining connections')
             process.exit(0)
