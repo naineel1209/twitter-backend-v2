@@ -17,5 +17,9 @@
       "dom.iterable"
     ],
     "sourceMap": true,
-  }
+    "declaration": true
+  },
+  "include": [
+    "src/**/*"
+  ]
 }

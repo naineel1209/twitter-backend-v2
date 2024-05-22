@@ -1,7 +1,7 @@
 import pg from 'pg';
 import {LocalAuthDal} from './localauth.dal';
 import pool from '../../../../config/pg.config';
-import {ILocalUserObj} from './localauth.interface';
+import {ILocalUserObj} from './localauth';
 import bcrypt from 'bcrypt';
 
 class LocalAuthService {

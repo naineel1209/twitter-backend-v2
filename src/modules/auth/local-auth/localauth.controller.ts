@@ -1,16 +1,16 @@
 import {NextFunction, Request, Response} from 'express';
-import {ILocalUserObj} from './localauth.interface';
+import {ILocalUserObj} from './localauth';
 import localAuthService from './localauth.service';
 import httpStatus from 'http-status';
 
 export class LocalAuthController {
     static async localRegister(req: Request, res: Response, next: NextFunction) {
-        try{
-            const {username, name, email, password} :ILocalUserObj = req.body;
+        try {
+            const {username, name, email, password}: ILocalUserObj = req.body;
 
             const userExists = await localAuthService.findUserByUsername(username);
 
-            if(userExists){
+            if (userExists) {
                 //TODO Custom Error Class Implementation
                 return res.status(httpStatus.BAD_REQUEST).json({message: 'User already exists'});
             }

@@ -2,7 +2,7 @@ import {Router} from 'express';
 import passport from 'passport';
 import {googleoauthStrategy} from './googleoauth.strategy';
 
-const router = Router()
+const router: Router = Router()
 
 //PATH: /api/auth/google-oauth
 

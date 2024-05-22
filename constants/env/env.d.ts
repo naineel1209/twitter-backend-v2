@@ -1,4 +1,5 @@
-export interface IEnv {
+//todo d.ts convert
+export type IEnv =  {
     PORT: string,
     NODE_ENV: string,
     DATABASE_URL: string,

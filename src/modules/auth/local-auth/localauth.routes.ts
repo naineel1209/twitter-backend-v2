@@ -2,10 +2,10 @@ import {Router} from 'express'
 import passport from 'passport';
 import {localAuthStrategy} from './localauth.strategy';
 import {LocalAuthController} from './localauth.controller';
-import {RequestBodyValidator} from '../../../providers/validator.provider';
-import {LocalLoginSchema, LocalRegisterSchema} from './localauth.schema';
+import {RequestBodyValidator} from '../../../providers/validator';
+import {LocalLoginSchema, LocalRegisterSchema} from './localauth.validation';
 
-const router = Router()
+const router: Router = Router()
 
 //Path: /api/auth/
 passport.use('local', localAuthStrategy)

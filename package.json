@@ -23,7 +23,12 @@
     "@types/passport-local": "^1.0.38",
     "@types/pg": "^8.11.6",
     "connect-pg-simple": "^9.0.1",
-    "eslint": "~9.3.0",
+    "eslint": "~8.57.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-jsx-a11y": "^6.8.0",
+    "eslint-plugin-react": "^7.34.1",
+    "eslint-plugin-react-hooks": "^4.6.2",
     "globals": "^15.3.0",
     "typescript-eslint": "^7.10.0"
   },

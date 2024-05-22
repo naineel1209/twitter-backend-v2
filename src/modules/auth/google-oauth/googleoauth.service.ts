@@ -3,7 +3,7 @@ import pg from 'pg';
 import {Profile} from 'passport-google-oauth20';
 import {GoogleOAuthDal} from './googleoauth.dal';
 import {UtilsService} from '../../../utils/utils.service';
-import {IGoogleUserObj} from './googleoauth.interface';
+import {IGoogleUserObj} from './googleoauth';
 
 class GoogleOAuthService {
     private pgPool: pg.Pool;

@@ -4,7 +4,7 @@ import localAuthRoutes from './local-auth/localauth.routes';
 import {checkAuthenticated} from '../../middlewares/auth.middleware';
 import {AuthController} from './auth.controller';
 
-const router = Router()
+const router: Router = Router()
 
 //Path : /api/auth
 

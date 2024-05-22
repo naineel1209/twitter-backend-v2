@@ -104,6 +104,7 @@ CREATE TABLE public.tweets (
     id integer NOT NULL,
     user_id integer,
     tweet text NOT NULL,
+    likes_count integer DEFAULT 0,
     is_deleted boolean DEFAULT false,
     created_at timestamp with time zone DEFAULT now(),
     updated_at timestamp with time zone DEFAULT now(),
@@ -252,6 +253,14 @@ ALTER TABLE ONLY public.user_session
 
 ALTER TABLE ONLY public.tweets
     ADD CONSTRAINT tweets_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: likes unique_user_tweet; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.likes
+    ADD CONSTRAINT unique_user_tweet UNIQUE (user_id, tweet_id);
 
 
 --

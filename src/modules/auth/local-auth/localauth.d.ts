@@ -1,4 +1,4 @@
-export interface ILocalUserObj {
+export type ILocalUserObj = {
     username: string,
     name: string,
     email?: string,

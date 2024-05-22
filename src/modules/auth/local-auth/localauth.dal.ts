@@ -1,5 +1,5 @@
 import pg from 'pg';
-import {ILocalUserObj} from './localauth.interface';
+import {ILocalUserObj} from './localauth';
 
 export class LocalAuthDal {
     static async findUserByUsername(client: pg.PoolClient, username: string) {

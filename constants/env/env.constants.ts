@@ -1,5 +1,5 @@
 import env from './env.validation';
-import {IEnv} from '../../interfaces/env.interface';
+import {IEnv} from './env';
 
 //freezing the object makes it immutable - this is a good practice to prevent accidental changes
 const processEnv: Readonly<IEnv> = Object.freeze({

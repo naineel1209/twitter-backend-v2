@@ -1,5 +1,5 @@
 import pg, {PoolClient} from 'pg';
-import {IGoogleUserObj} from './googleoauth.interface';
+import {IGoogleUserObj} from './googleoauth';
 
 export class GoogleOAuthDal {
 
@@ -36,7 +36,7 @@ export class GoogleOAuthDal {
 
             const queryResult = await client.query(createGoogleUserQuery)
 
-            if(queryResult.rowCount === 0){
+            if (queryResult.rowCount === 0) {
                 throw new Error(`Error in creating google user with googleId: ${googleId}`)
             }
 
