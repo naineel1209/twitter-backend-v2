@@ -137,7 +137,6 @@ class TweetService {
             }
 
             if (tweet.user_id !== data.userId) {
-                //TODO add custom error here
                 throw new CustomError('Unauthorized', httpStatus.UNAUTHORIZED, {
                     message: 'Unauthorized',
                     error: 'Unauthorized',
