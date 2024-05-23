@@ -1,4 +1,4 @@
-import express, {NextFunction} from 'express'
+import express from 'express'
 import * as http from 'node:http';
 import logger from '../config/winston.config'
 import dotenv from 'dotenv'
@@ -66,7 +66,7 @@ app.use('*', (req, res) => {
     })
 })
 
-app.use((err: unknown, req: express.Request, res: express.Response, next: NextFunction) => {
+app.use((err: unknown, req: express.Request, res: express.Response) => {
     if (err instanceof JoiError) {
         logger.error(err.message)
         return res.status(err.code).json({
