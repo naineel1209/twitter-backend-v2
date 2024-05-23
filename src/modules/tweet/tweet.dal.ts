@@ -4,6 +4,26 @@ import {CustomError} from '../../errors/custom-error';
 import httpStatus from 'http-status';
 
 export class TweetDal {
+    static async getFeed(client: pg.PoolClient, userId: number = -1) {
+        try {
+            const getFeedQuery = {
+                text: ` SELECT *
+                        FROM tweets
+                        WHERE is_deleted = false
+                        ORDER BY CASE WHEN user_id != $1 THEN 0 ELSE 1 END, -- Non-user tweets first, then user tweets
+                                 created_at DESC; -- For each group, order by creation time in descending order
+                `,
+                values: [userId]
+            }
+
+            const result = await client.query(getFeedQuery);
+
+            return result.rows;
+        } catch (error) {
+            throw error;
+        }
+    }
+
     static async createTweet(client: pg.PoolClient, data: ICreateTweet) {
         try {
             const {tweet, userId} = data;
@@ -53,11 +73,12 @@ export class TweetDal {
                     updateTweetQueryFields.push(`likes_count = likes_count + 1`)
                 } else if (key === 'like' && data[key] === false) {
                     updateTweetQueryFields.push(`likes_count = likes_count - 1`)
-                }
-
-                if (key === 'tweet') {
+                } else if (key === 'tweet') {
                     updateTweetQueryFields.push(`tweet = $${updateTweetQueryValues.length + 1}`)
                     updateTweetQueryValues.push(data[key])
+                } else if (key === 'delete' && data[key] === true) {
+                    updateTweetQueryFields.push(`is_deleted = true`)
+                    updateTweetQueryFields.push(`deleted_at = NOW()`)
                 }
             }
 

@@ -13,7 +13,7 @@ export class AuthController {
                 return res.status(httpStatus.OK).json({message: 'Logged out successfully'});
             })
         }catch(error){
-            next(error);
+            return next(error);
         }
     }
 }

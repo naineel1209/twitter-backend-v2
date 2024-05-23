@@ -1,4 +1,4 @@
-import express from 'express'
+import express, {NextFunction} from 'express'
 import * as http from 'node:http';
 import logger from '../config/winston.config'
 import dotenv from 'dotenv'
@@ -66,7 +66,7 @@ app.use('*', (req, res) => {
     })
 })
 
-app.use((err: unknown, req: express.Request, res: express.Response) => {
+app.use((err: unknown, req: express.Request, res: express.Response, _: NextFunction) => {
     if (err instanceof JoiError) {
         logger.error(err.message)
         return res.status(err.code).json({
@@ -87,6 +87,13 @@ app.use((err: unknown, req: express.Request, res: express.Response) => {
             message: 'Internal Server Error',
             error: err.message
         })
+    }else{
+        logger.error(err)
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+            message: 'Internal Server Error',
+            error: 'Internal Server Error'
+        })
+
     }
 })
 

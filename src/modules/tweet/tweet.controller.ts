@@ -3,6 +3,25 @@ import tweetService from './tweet.service';
 import httpStatus from 'http-status';
 
 export class TweetController {
+    static async getFeed(req: Request, res: Response, next: NextFunction) {
+        try {
+            let userId = -1;
+            if (req.user) {
+                // @ts-ignore
+                userId = req.user.id;
+            }
+
+            const feed = await tweetService.getFeed(userId);
+
+            return res.status(httpStatus.OK).json({
+                message: 'Feed fetched successfully',
+                feed
+            })
+        } catch (err) {
+            next(err);
+        }
+    }
+
     static async createTweet(req: Request, res: Response, next: NextFunction) {
         try {
             // @ts-ignore
@@ -66,6 +85,23 @@ export class TweetController {
             return res.status(httpStatus.OK).json({
                 message: 'Tweet unliked successfully',
                 tweet: unlikedTweet
+            })
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    static async deleteTweet(req: Request, res: Response, next: NextFunction) {
+        try {
+            // @ts-ignore
+            const {id: userId} = req.user
+            const {id} = req.params;
+
+            const deletedTweet = await tweetService.deleteTweet({userId, tweetId: Number(id), delete: true})
+
+            return res.status(httpStatus.OK).json({
+                message: 'Tweet deleted successfully',
+                tweet: deletedTweet
             })
         } catch (err) {
             next(err);

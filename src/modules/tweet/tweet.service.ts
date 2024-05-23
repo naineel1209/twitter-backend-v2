@@ -3,9 +3,22 @@ import {ICreateTweet, IUpdateTweet} from './tweet';
 import {TweetDal} from './tweet.dal';
 import pool from '../../../config/pg.config';
 import {UtilsService} from '../../utils/utils.service';
+import {CustomError} from '../../errors/custom-error';
+import httpStatus from 'http-status';
 
 class TweetService {
     constructor(private pgPool: pg.Pool) {
+    }
+
+    async getFeed(userId: number) {
+        const client = await this.pgPool.connect();
+        try {
+            return await TweetDal.getFeed(client, userId);
+        } catch (err) {
+            throw err;
+        } finally {
+            client.release();
+        }
     }
 
     async createTweet(data: ICreateTweet) {
@@ -75,13 +88,13 @@ class TweetService {
         }
     }
 
-    async unlikeTweet(data: IUpdateTweet){
+    async unlikeTweet(data: IUpdateTweet) {
         const client = await this.pgPool.connect();
 
-        try{
+        try {
             const tweet = await TweetDal.findTweetById(client, data.tweetId);
 
-            if(!tweet){
+            if (!tweet) {
                 throw new Error('Tweet not found');
             }
 
@@ -102,9 +115,36 @@ class TweetService {
             const finalOpsResult = await UtilsService.transactionWrapper(client, ops);
 
             return finalOpsResult[0]; //0th index will always be the updated tweet
-        }catch(err){
+        } catch (err) {
             throw err;
-        }finally{
+        } finally {
+            client.release();
+        }
+    }
+
+    async deleteTweet(data: IUpdateTweet) {
+        const client = await this.pgPool.connect();
+
+        try {
+            const tweet = await TweetDal.findTweetById(client, data.tweetId);
+
+            if (!tweet) {
+                throw new CustomError('Tweet not found', httpStatus.NOT_FOUND, {
+                    message: 'Tweet not found',
+                    error: 'Tweet not found',
+                    details: tweet
+                })
+            }
+
+            if (tweet.user_id !== data.userId) {
+                //TODO add custom error here
+                throw new Error('Unauthorized');
+            }
+
+            return await TweetDal.updateTweet(client, data);
+        } catch (err) {
+            throw err;
+        } finally {
             client.release();
         }
     }

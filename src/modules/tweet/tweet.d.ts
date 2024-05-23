@@ -6,6 +6,12 @@ export type ICreateTweet = {
 export type IUpdateTweet = {
     tweet?: string
     like?: boolean
+    delete?: boolean
+    tweetId: number
+    userId: number
+}
+
+export type IDeleteTweet = {
     tweetId: number
     userId: number
 }
