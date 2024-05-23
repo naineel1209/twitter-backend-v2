@@ -3,14 +3,13 @@ export type ICreateTweet = {
     userId: number
 }
 
-export type IUpdateTweet = ICreateTweet & {
+export type IUpdateTweet = {
+    tweet?: string
+    like?: boolean
     tweetId: number
+    userId: number
 }
 
-export type ILikeTweet = {
-    userId: number,
-    tweetId: number
-}
 // Define an interface representing the structure of the user object
 interface User {
     user_id: string; // Adjust the type accordingly (e.g., number, string, etc.)

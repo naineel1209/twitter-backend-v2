@@ -1,5 +1,7 @@
 import pg from 'pg';
-import {ICreateTweet, ILikeTweet, IUpdateTweet} from './tweet';
+import {ICreateTweet, IUpdateTweet} from './tweet';
+import {CustomError} from '../../errors/custom-error';
+import httpStatus from 'http-status';
 
 export class TweetDal {
     static async createTweet(client: pg.PoolClient, data: ICreateTweet) {
@@ -41,12 +43,30 @@ export class TweetDal {
 
     static async updateTweet(client: pg.PoolClient, data: IUpdateTweet) {
         try {
+            let updateTweetQueryText: string = `UPDATE tweets `;
+
+            let updateTweetQueryFields = [];
+            let updateTweetQueryValues = [];
+
+            for (const key in data) {
+                if (key === 'like' && data[key] === true) {
+                    updateTweetQueryFields.push(`likes_count = likes_count + 1`)
+                } else if (key === 'like' && data[key] === false) {
+                    updateTweetQueryFields.push(`likes_count = likes_count - 1`)
+                }
+
+                if (key === 'tweet') {
+                    updateTweetQueryFields.push(`tweet = $${updateTweetQueryValues.length + 1}`)
+                    updateTweetQueryValues.push(data[key])
+                }
+            }
+
+            updateTweetQueryText += `SET ${updateTweetQueryFields.join(', ')} WHERE id = $${updateTweetQueryValues.length + 1} RETURNING *;`
+            updateTweetQueryValues.push(data.tweetId)
+
             const updateTweetQuery = {
-                text: `UPDATE tweets
-                       SET tweet = $1
-                       WHERE id = $2
-                       RETURNING *`,
-                values: [data.tweet, data.tweetId]
+                text: updateTweetQueryText,
+                values: updateTweetQueryValues,
             }
 
             const result = await client.query(updateTweetQuery)
@@ -57,26 +77,7 @@ export class TweetDal {
         }
     }
 
-    static async updateTweetLike(client: pg.PoolClient, data: { tweetId: number }) {
-        try {
-            const updateTweetLikeQuery = {
-                text: `UPDATE tweets
-                       SET likes_count = likes_count + 1
-                       WHERE id = $1
-                       RETURNING *;
-                `,
-                values: [data.tweetId]
-            }
-
-            const result = await client.query(updateTweetLikeQuery)
-
-            return result.rows[0]
-        } catch (error) {
-            throw error;
-        }
-    }
-
-    static async insertLike(client: pg.PoolClient, data: ILikeTweet) {
+    static async insertLike(client: pg.PoolClient, data: IUpdateTweet) {
         try {
             const insertLikeQuery = {
                 text: `INSERT INTO likes
@@ -88,6 +89,34 @@ export class TweetDal {
             }
 
             const result = await client.query(insertLikeQuery)
+
+            return result.rows[0]
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    static async deleteLike(client: pg.PoolClient, data: IUpdateTweet) {
+        try {
+            const deleteLikeQuery = {
+                text: `DELETE
+                       FROM likes
+                       WHERE user_id = $1
+                         AND tweet_id = $2
+                       RETURNING *;
+                `,
+                values: [data.userId, data.tweetId]
+            }
+
+            const result = await client.query(deleteLikeQuery)
+
+            if (result.rowCount === 0) {
+                throw new CustomError('Could not delete like', httpStatus.INTERNAL_SERVER_ERROR, {
+                    message: 'Could not delete like',
+                    error: 'Could not delete like',
+                    details: result
+                })
+            }
 
             return result.rows[0]
         } catch (error) {

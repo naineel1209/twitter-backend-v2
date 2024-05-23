@@ -1,5 +1,7 @@
 import pg, {PoolClient} from 'pg';
 import {IGoogleUserObj} from './googleoauth';
+import httpStatus from 'http-status';
+import {CustomError} from '../../../errors/custom-error';
 
 export class GoogleOAuthDal {
 
@@ -37,7 +39,11 @@ export class GoogleOAuthDal {
             const queryResult = await client.query(createGoogleUserQuery)
 
             if (queryResult.rowCount === 0) {
-                throw new Error(`Error in creating google user with googleId: ${googleId}`)
+                throw new CustomError('Could not create google user', httpStatus.INTERNAL_SERVER_ERROR, {
+                    message: 'Could not create google user',
+                    error: 'Could not create google user',
+                    details: queryResult
+                })
             }
 
             return queryResult.rows[0]

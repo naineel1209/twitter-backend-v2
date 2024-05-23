@@ -20,7 +20,7 @@ export class TweetController {
         }
     }
 
-    static async updateTweet(req: Request, res: Response, next: NextFunction){
+    static async updateTweet(req: Request, res: Response, next: NextFunction) {
         try {
             // @ts-ignore
             const {id: userId} = req.user;
@@ -38,19 +38,36 @@ export class TweetController {
         }
     }
 
-    static async likeTweet(req: Request, res: Response, next: NextFunction){
-        try{
+    static async likeTweet(req: Request, res: Response, next: NextFunction) {
+        try {
             // @ts-ignore
             const {id: userId} = req.user;
             const {id} = req.params;
 
-            const likedTweet = await tweetService.likeTweet({userId, tweetId: Number(id)});
+            const likedTweet = await tweetService.likeTweet({userId, tweetId: Number(id), like: true});
 
             return res.status(httpStatus.OK).json({
                 message: 'Tweet liked successfully',
                 tweet: likedTweet
             })
-        }catch(err){
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    static async unlikeTweet(req: Request, res: Response, next: NextFunction) {
+        try {
+            // @ts-ignore
+            const {id: userId} = req.user;
+            const {id} = req.params;
+
+            const unlikedTweet = await tweetService.unlikeTweet({userId, tweetId: Number(id), like: false});
+
+            return res.status(httpStatus.OK).json({
+                message: 'Tweet unliked successfully',
+                tweet: unlikedTweet
+            })
+        } catch (err) {
             next(err);
         }
     }
