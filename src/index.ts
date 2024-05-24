@@ -2,7 +2,7 @@ import express, {NextFunction} from 'express'
 import * as http from 'node:http';
 import logger from '../config/winston.config'
 import dotenv from 'dotenv'
-import indexRouter from './routes/index.routes'
+import indexRouter from './routes/index.route'
 import processEnv from '../constants/env/env.constants';
 import httpStatus from 'http-status';
 import session from 'express-session';
@@ -73,21 +73,20 @@ app.use((err: unknown, req: express.Request, res: express.Response, _: NextFunct
             message: err.message,
             error: processEnv.NODE_ENV === 'development' ? err.stack : ''
         })
-    } else if (err instanceof CustomError){
+    } else if (err instanceof CustomError) {
         logger.error(err.message)
         return res.status(err.statusCode).json({
             message: err.message,
-            error: processEnv.NODE_ENV === 'development' ? err.stack : '',
+            stack: processEnv.NODE_ENV === 'development' ? err.stack : '',
             details: processEnv.NODE_ENV === 'development' ? err.details : '',
         });
-    }
-    else if (err instanceof Error) {
+    } else if (err instanceof Error) {
         logger.error(err.message)
         return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
             message: 'Internal Server Error',
             error: err.message
         })
-    }else{
+    } else {
         logger.error(err)
         return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
             message: 'Internal Server Error',

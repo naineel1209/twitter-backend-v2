@@ -1,6 +1,6 @@
 import {Router} from 'express';
-import googleOAuthRouter from './/google-oauth/googleoauth.routes'
-import localAuthRoutes from './local-auth/localauth.routes';
+import googleOAuthRouter from './google-oauth/googleoauth.route'
+import localAuthRoutes from './local-auth/localauth.route';
 import {checkAuthenticated} from '../../middlewares/auth.middleware';
 import {AuthController} from './auth.controller';
 

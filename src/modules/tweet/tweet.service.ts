@@ -5,6 +5,7 @@ import pool from '../../../config/pg.config';
 import {UtilsService} from '../../utils/utils.service';
 import {CustomError} from '../../errors/custom-error';
 import httpStatus from 'http-status';
+import {UserDal} from '../user/user.dal';
 
 class TweetService {
     constructor(private pgPool: pg.Pool) {
@@ -74,6 +75,10 @@ class TweetService {
                 const insertLike = await TweetDal.insertLike(client, data);
                 finalOpsResult.push(insertLike);
 
+                //update the liked_tweets_count in the user table
+                const updateUserLikedTweetsCount = await UserDal.updateUser(client, {userId:data.userId, liked_tweets_count: true });
+                finalOpsResult.push(updateUserLikedTweetsCount);
+
                 return finalOpsResult;
             }
 
@@ -108,6 +113,9 @@ class TweetService {
                 //delete the like entry from the likes table
                 const deleteLike = await TweetDal.deleteLike(client, data);
                 finalOpsResult.push(deleteLike);
+
+                //update the liked_tweets_count in the user table
+                const updateUserLikedTweetsCount = await UserDal.updateUser(client, {userId: data.userId, liked_tweets_count: false});
 
                 return finalOpsResult;
             }

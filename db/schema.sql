@@ -163,7 +163,11 @@ CREATE TABLE public.users (
     login_type public.user_login_type DEFAULT 'local'::public.user_login_type,
     is_deleted boolean DEFAULT false,
     created_at timestamp with time zone DEFAULT now(),
-    updated_at timestamp with time zone DEFAULT now()
+    updated_at timestamp with time zone DEFAULT now(),
+    followers_count integer DEFAULT 0,
+    following_count integer DEFAULT 0,
+    tweets_count integer DEFAULT 0,
+    liked_tweets_count integer DEFAULT 0
 );
 
 
@@ -256,6 +260,14 @@ ALTER TABLE ONLY public.tweets
 
 
 --
+-- Name: follower_following unique_follower_following; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.follower_following
+    ADD CONSTRAINT unique_follower_following UNIQUE (follower_id, following_id);
+
+
+--
 -- Name: likes unique_user_tweet; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -344,4 +356,5 @@ ALTER TABLE ONLY public.tweets
 --
 
 INSERT INTO public.schema_migrations (version) VALUES
-    ('20240520093416');
+    ('20240520093416'),
+    ('20240524044130');
