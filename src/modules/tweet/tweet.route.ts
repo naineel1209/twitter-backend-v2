@@ -3,6 +3,7 @@ import {RequestBodyValidator, RequestParamsValidator} from '../../providers/vali
 import {checkAuthenticated} from '../../middlewares/auth.middleware';
 import {
     createTweetSchema,
+    getTweetParamSchema,
     likeTweetParamSchema,
     unlikeTweetParamSchema,
     updateTweetParamSchema,
@@ -16,7 +17,9 @@ const router: Router = Router();
 
 router
     .get('/feed', TweetController.getFeed)
+    .get('/feed/following', checkAuthenticated, TweetController.getFollowingFeed)
     .post('/', checkAuthenticated, RequestBodyValidator(createTweetSchema), TweetController.createTweet)
+    .get('/:tweetId', RequestParamsValidator(getTweetParamSchema), TweetController.getTweet)
     .patch('/:id', checkAuthenticated, RequestBodyValidator(updateTweetSchema), RequestParamsValidator(updateTweetParamSchema), TweetController.updateTweet)
     .post('/:id/like', checkAuthenticated, RequestParamsValidator(likeTweetParamSchema), TweetController.likeTweet)
     .post('/:id/unlike', checkAuthenticated, RequestParamsValidator(unlikeTweetParamSchema), TweetController.unlikeTweet)

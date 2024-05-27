@@ -7,11 +7,16 @@ export class TweetDal {
     static async getFeed(client: pg.PoolClient, userId: number = -1) {
         try {
             const getFeedQuery = {
-                text: ` SELECT *
-                        FROM tweets
-                        WHERE is_deleted = false
-                        ORDER BY CASE WHEN user_id != $1 THEN 0 ELSE 1 END, -- Non-user tweets first, then user tweets
-                                 created_at DESC; -- For each group, order by creation time in descending order
+                text: ` SELECT t.*, u.username, u.profile_pic, u.name, u.bio, u.created_at as user_created_at
+                        FROM (
+                                 tweets t
+                                     INNER JOIN
+                                     users u
+                                 ON t.user_id = u.id
+                                 )
+                        WHERE t.is_deleted = false
+                        ORDER BY CASE WHEN t.user_id != $1 THEN 0 ELSE 1 END, -- Non-user tweets first, then user tweets
+                                 t.created_at DESC; -- For each group, order by creation time in descending order
                 `,
                 values: [userId]
             }
@@ -19,6 +24,30 @@ export class TweetDal {
             const result = await client.query(getFeedQuery);
 
             return result.rows;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    static async getTweet(client: pg.PoolClient, tweetId: number) {
+        try {
+            const getTweetQuery = {
+                text: `SELECT t.*, u.username, u.profile_pic, u.name, u.bio, u.created_at as user_created_at
+                       FROM (
+                                tweets t
+                                    INNER JOIN
+                                    users u
+                                ON t.user_id = u.id
+                                )
+                       WHERE t.id = $1
+                         AND t.is_deleted = false;
+                `,
+                values: [tweetId]
+            }
+
+            const result = await client.query(getTweetQuery);
+
+            return result.rows[0];
         } catch (error) {
             throw error;
         }
@@ -82,8 +111,14 @@ export class TweetDal {
                 }
             }
 
-            updateTweetQueryText += `SET ${updateTweetQueryFields.join(', ')} WHERE id = $${updateTweetQueryValues.length + 1} RETURNING *;`
+            updateTweetQueryText += `SET ${updateTweetQueryFields.join(', ')} WHERE id = $${updateTweetQueryValues.length + 1} 
+            AND 
+            is_deleted = false
+            AND
+            user_id = $${updateTweetQueryValues.length + 2} 
+            RETURNING *;`
             updateTweetQueryValues.push(data.tweetId)
+            updateTweetQueryValues.push(data.userId)
 
             const updateTweetQuery = {
                 text: updateTweetQueryText,
@@ -91,6 +126,14 @@ export class TweetDal {
             }
 
             const result = await client.query(updateTweetQuery)
+
+            if (result.rowCount === 0) {
+                throw new CustomError('Tweet not found', httpStatus.NOT_FOUND, {
+                    message: 'Tweet not found',
+                    error: 'Tweet not found',
+                    details: data
+                })
+            }
 
             return result.rows[0]
         } catch (error) {
@@ -142,6 +185,34 @@ export class TweetDal {
             return result.rows[0]
         } catch (error) {
             throw error;
+        }
+    }
+
+    static async getFollowingFeed(client: pg.PoolClient, userId: number) {
+        try {
+            const getFollowingFeedQuery = {
+                text: `SELECT t.*, u.username, u.profile_pic, u.name, u.bio, u.created_at as user_created_at
+                       FROM (
+                                tweets t
+                                    INNER JOIN
+                                    (SELECT following_id
+                                     FROM follower_following
+                                     WHERE follower_id = $1 -- fetch the users the current user is following
+                                    ) f
+                                ON t.user_id = f.following_id
+                                )
+                                INNER JOIN users u ON t.user_id = u.id
+                       WHERE t.is_deleted = false
+                       ORDER BY t.created_at DESC;
+                `,
+                values: [userId]
+            }
+
+            const result = await client.query(getFollowingFeedQuery)
+
+            return result.rows;
+        } catch (err) {
+            throw err;
         }
     }
 }

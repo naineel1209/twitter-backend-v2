@@ -1,4 +1,4 @@
-import {IUpdateUser} from './user';
+import {IGetAllUsers, IUpdateUser} from './user';
 import pg from 'pg';
 import {CustomError} from '../../errors/custom-error';
 import httpStatus from 'http-status';
@@ -68,6 +68,84 @@ export class UserDal {
             return updatedUser.rows[0];
         } catch (error) {
             throw error;
+        }
+    }
+
+    static async getFollowers(client: pg.PoolClient, userId: number) {
+        try {
+            const getFollowersQuery = {
+                text: `SELECT users.* --details of the users following the current user
+                       FROM (
+                                follower_following ff
+                                    INNER JOIN public.users users on
+                                    ff.follower_id = users.id)
+                       WHERE following_id = $1;`,
+                values: [userId]
+            };
+
+            const result = await client.query(getFollowersQuery);
+
+            return result.rows;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    static async getFollowing(client: pg.PoolClient, userId: number) {
+        try {
+            const getFollowingQuery = {
+                text: `SELECT users.* --details of the users the current user is following
+                       FROM (follower_following ff INNER JOIN public.users users on ff.following_id = users.id)
+                       WHERE follower_id = $1;`,
+                values: [userId]
+            };
+
+            const result = await client.query(getFollowingQuery);
+
+            return result.rows;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    static async getAllUsers(client: pg.PoolClient, queryParams: IGetAllUsers) {
+        try {
+            let getAllUsersQueryText = `SELECT *
+                                        FROM users `;
+            let getAllUsersQueryValues = [];
+
+            if (queryParams.search) {
+                getAllUsersQueryText += `WHERE username ILIKE $${getAllUsersQueryValues.length + 1} OR name ILIKE $${getAllUsersQueryValues.length + 1}`;
+                getAllUsersQueryValues.push(`%${queryParams.search}%`);
+            }
+
+            if (queryParams.limit) {
+                getAllUsersQueryText += ` LIMIT $${getAllUsersQueryValues.length + 1}`;
+                getAllUsersQueryValues.push(queryParams.limit);
+            }
+
+            if (queryParams.offset) {
+                getAllUsersQueryText += ` OFFSET $${getAllUsersQueryValues.length + 1}`;
+                getAllUsersQueryValues.push(queryParams.offset); //for the first page offset = 0, for the second page offset = previous offset + limit
+            }
+
+            if(queryParams.userId) {
+                getAllUsersQueryText += ` WHERE id = $${getAllUsersQueryValues.length + 1}`;
+                getAllUsersQueryValues.push(queryParams.userId);
+            }
+
+            getAllUsersQueryText += ';';
+
+            const getAllUsersQuery = {
+                text: getAllUsersQueryText,
+                values: getAllUsersQueryValues,
+            };
+
+            const result = await client.query(getAllUsersQuery);
+
+            return result.rows;
+        } catch (err) {
+            throw err;
         }
     }
 }

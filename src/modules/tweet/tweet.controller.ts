@@ -32,7 +32,7 @@ export class TweetController {
 
             return res.status(httpStatus.CREATED).json({
                 message: 'Tweet created successfully',
-                tweet: createdTweet
+                tweet: createdTweet.id,
             })
         } catch (err) {
             next(err);
@@ -100,10 +100,46 @@ export class TweetController {
             const deletedTweet = await tweetService.deleteTweet({userId, tweetId: Number(id), delete: true})
 
             return res.status(httpStatus.OK).json({
-                message: 'Tweet deleted successfully',
-                tweet: deletedTweet
+                message: 'Tweet deleted successfully'
             })
         } catch (err) {
+            next(err);
+        }
+    }
+
+    static async getFollowingFeed(req: Request, res: Response, next: NextFunction) {
+        try{
+            // @ts-ignore
+            const {id: userId} = req.user;
+
+            const feed = await tweetService.getFollowingFeed(userId);
+
+            return res.status(httpStatus.OK).json({
+                message: 'Following feed fetched successfully',
+                feed
+            })
+        }catch(err){
+            next(err);
+        }
+    }
+
+    static async  getTweet(req: Request, res: Response, next: NextFunction) {
+        try{
+            const {tweetId} = req.params;
+
+            const tweet = await tweetService.getTweet(Number(tweetId));
+
+            if(tweet === null || tweet === undefined){
+                return res.status(httpStatus.NOT_FOUND).json({
+                    message: 'Tweet not found'
+                });
+            }
+
+            return res.status(httpStatus.OK).json({
+                message: 'Tweet fetched successfully',
+                tweet
+            });
+        }catch(err){
             next(err);
         }
     }

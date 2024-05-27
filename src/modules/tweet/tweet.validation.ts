@@ -13,13 +13,17 @@ export const updateTweetParamSchema = Joi.object({
 })
 
 export const likeTweetParamSchema = Joi.object({
-    id: Joi.number().required()
+    id: Joi.number().integer().required()
 })
 
 export const unlikeTweetParamSchema = Joi.object({
-    id: Joi.number().required()
+    id: Joi.number().integer().required()
 })
 
 export const deleteTweetParamSchema = Joi.object({
-    id: Joi.number().required()
+    id: Joi.number().integer().required()
+})
+
+export const getTweetParamSchema = Joi.object({
+    tweetId: Joi.number().integer().required(),
 })

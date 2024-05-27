@@ -19,8 +19,6 @@ export class LocalAuthDal {
 
     static async registerLocalUser(client: pg.PoolClient, data: ILocalUserObj) {
         try {
-            const {username, name, email, password} = data;
-
             const registerUserQuery = {
                 text: `INSERT INTO users(${Object.keys(data).join(', ')})
                        VALUES (${Object.keys(data).map((_, index) => `$${index + 1}`).join(', ')})

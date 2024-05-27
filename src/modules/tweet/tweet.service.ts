@@ -3,8 +3,6 @@ import {ICreateTweet, IUpdateTweet} from './tweet';
 import {TweetDal} from './tweet.dal';
 import pool from '../../../config/pg.config';
 import {UtilsService} from '../../utils/utils.service';
-import {CustomError} from '../../errors/custom-error';
-import httpStatus from 'http-status';
 import {UserDal} from '../user/user.dal';
 
 class TweetService {
@@ -25,7 +23,24 @@ class TweetService {
     async createTweet(data: ICreateTweet) {
         const client = await this.pgPool.connect();
         try {
-            return await TweetDal.createTweet(client, data);
+            const ops = async () => {
+                const finalOpsResult = [];
+
+                //insert the tweet in the tweet table
+                const createdTweet = await TweetDal.createTweet(client, data);
+                finalOpsResult.push(createdTweet);
+
+                //update the tweets count in the user table
+                const updatedUser = await UserDal.updateUser(client, {userId: data.userId, tweets_count: true})
+                finalOpsResult.push(updatedUser);
+
+                return finalOpsResult;
+            }
+
+            //use the transaction wrapper to wrap the transaction operations
+            const finalOpsResult = await UtilsService.transactionWrapper(client, ops);
+
+            return finalOpsResult[0]; //0th index will always be the created tweet
         } catch (err) {
             throw err;
         } finally {
@@ -36,16 +51,6 @@ class TweetService {
     async updateTweet(data: IUpdateTweet) {
         const client = await this.pgPool.connect();
         try {
-            const tweet = await TweetDal.findTweetById(client, data.tweetId);
-
-            if (!tweet) {
-                throw new Error('Tweet not found');
-            }
-
-            if (tweet.user_id !== data.userId) {
-                throw new Error('Unauthorized');
-            }
-
             return await TweetDal.updateTweet(client, data)
         } catch (err) {
             throw err;
@@ -58,11 +63,6 @@ class TweetService {
         const client = await this.pgPool.connect();
 
         try {
-            const tweet = await TweetDal.findTweetById(client, data.tweetId);
-
-            if (!tweet) {
-                throw new Error('Tweet not found');
-            }
 
             const ops = async () => {
                 let finalOpsResult = [];
@@ -76,7 +76,10 @@ class TweetService {
                 finalOpsResult.push(insertLike);
 
                 //update the liked_tweets_count in the user table
-                const updateUserLikedTweetsCount = await UserDal.updateUser(client, {userId:data.userId, liked_tweets_count: true });
+                const updateUserLikedTweetsCount = await UserDal.updateUser(client, {
+                    userId: data.userId,
+                    liked_tweets_count: true
+                });
                 finalOpsResult.push(updateUserLikedTweetsCount);
 
                 return finalOpsResult;
@@ -115,7 +118,10 @@ class TweetService {
                 finalOpsResult.push(deleteLike);
 
                 //update the liked_tweets_count in the user table
-                const updateUserLikedTweetsCount = await UserDal.updateUser(client, {userId: data.userId, liked_tweets_count: false});
+                const updateUserLikedTweetsCount = await UserDal.updateUser(client, {
+                    userId: data.userId,
+                    liked_tweets_count: false
+                });
 
                 return finalOpsResult;
             }
@@ -134,25 +140,47 @@ class TweetService {
         const client = await this.pgPool.connect();
 
         try {
-            const tweet = await TweetDal.findTweetById(client, data.tweetId);
 
-            if (!tweet) {
-                throw new CustomError('Tweet not found', httpStatus.NOT_FOUND, {
-                    message: 'Tweet not found',
-                    error: 'Tweet not found',
-                    details: tweet
-                })
+            const ops = async () => {
+                const finalOpsResult = [];
+
+                //delete the tweet in the tweet table
+                const createdTweet = await TweetDal.updateTweet(client, data); //delete: true in data
+                finalOpsResult.push(createdTweet);
+
+                //update the tweets count in the user table
+                const updatedUser = await UserDal.updateUser(client, {userId: data.userId, tweets_count: false})
+                finalOpsResult.push(updatedUser);
+
+                return finalOpsResult;
             }
 
-            if (tweet.user_id !== data.userId) {
-                throw new CustomError('Unauthorized', httpStatus.UNAUTHORIZED, {
-                    message: 'Unauthorized',
-                    error: 'Unauthorized',
-                    details: tweet
-                });
-            }
+            //use the transaction wrapper to wrap the transaction operations
+            const finalOpsResult = await UtilsService.transactionWrapper(client, ops);
 
-            return await TweetDal.updateTweet(client, data);
+            return finalOpsResult[0]; //0th index will always be the created tweet
+        } catch (err) {
+            throw err;
+        } finally {
+            client.release();
+        }
+    }
+
+    async getFollowingFeed(userId: number) {
+        const client = await this.pgPool.connect();
+        try {
+            return await TweetDal.getFollowingFeed(client, userId);
+        } catch (err) {
+            throw err;
+        } finally {
+            client.release();
+        }
+    }
+
+    async getTweet(tweetId: number) {
+        const client = await this.pgPool.connect();
+        try {
+            return await TweetDal.getTweet(client, tweetId);
         } catch (err) {
             throw err;
         } finally {
