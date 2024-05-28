@@ -11,6 +11,10 @@ const processEnv: Readonly<IEnv> = Object.freeze({
     GOOGLE_CLIENT_SECRET: env.GOOGLE_CLIENT_SECRET as string,
     JWT_SECRET: env.JWT_SECRET as string,
     JWT_EXPIRATION: env.JWT_EXPIRATION as string,
+    EMAIL: env.EMAIL as string,
+    APP_PASSWORD: env.EMAIL_PASSWORD as string,
+    ENCRYPTION_KEY: env.ENCRIPTION_KEY as string,
+    ENCRYPTION_IV: env.ENCRYPTION_IV as string
 })
 
 export default processEnv;

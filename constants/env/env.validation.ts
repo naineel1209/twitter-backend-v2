@@ -13,6 +13,10 @@ const envValidationSchema = Joi.object({
     GOOGLE_CLIENT_SECRET: Joi.string().trim().required(),
     JWT_SECRET: Joi.string().trim().required(),
     JWT_EXPIRATION: Joi.string().trim().required().default('1h'),
+    EMAIL: Joi.string().email().required(),
+    APP_PASSWORD: Joi.string().trim().required(),
+    ENCRYPTION_KEY: Joi.string().trim().required(),
+    ENCRYPTION_IV: Joi.string().trim().required()
 })
 
 //this will throw an error if any of the env variables are invalid

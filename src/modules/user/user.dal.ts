@@ -1,4 +1,4 @@
-import {IGetAllUsers, IUpdateUser} from './user';
+import {IGetAllUsersQueryParams, IUpdateUser} from './user';
 import pg from 'pg';
 import {CustomError} from '../../errors/custom-error';
 import httpStatus from 'http-status';
@@ -48,6 +48,7 @@ export class UserDal {
                 }
             }
 
+            updateUserQueryFields.push('updated_at = NOW()');
             updateUserQueryText += `SET ${updateUserQueryFields.join(', ')} WHERE id = $${updateUserQueryValues.length + 1} RETURNING *;`;
             updateUserQueryValues.push(data.userId);
 
@@ -108,7 +109,7 @@ export class UserDal {
         }
     }
 
-    static async getAllUsers(client: pg.PoolClient, queryParams: IGetAllUsers) {
+    static async getAllUsers(client: pg.PoolClient, queryParams: IGetAllUsersQueryParams) {
         try {
             let getAllUsersQueryText = `SELECT *
                                         FROM users `;
@@ -117,19 +118,17 @@ export class UserDal {
             if (queryParams.search) {
                 getAllUsersQueryText += `WHERE username ILIKE $${getAllUsersQueryValues.length + 1} OR name ILIKE $${getAllUsersQueryValues.length + 1}`;
                 getAllUsersQueryValues.push(`%${queryParams.search}%`);
-            }
 
-            if (queryParams.limit) {
-                getAllUsersQueryText += ` LIMIT $${getAllUsersQueryValues.length + 1}`;
-                getAllUsersQueryValues.push(queryParams.limit);
-            }
+                if (queryParams.limit) {
+                    getAllUsersQueryText += ` LIMIT $${getAllUsersQueryValues.length + 1}`;
+                    getAllUsersQueryValues.push(queryParams.limit);
+                }
 
-            if (queryParams.offset) {
-                getAllUsersQueryText += ` OFFSET $${getAllUsersQueryValues.length + 1}`;
-                getAllUsersQueryValues.push(queryParams.offset); //for the first page offset = 0, for the second page offset = previous offset + limit
-            }
-
-            if(queryParams.userId) {
+                if (queryParams.offset) {
+                    getAllUsersQueryText += ` OFFSET $${getAllUsersQueryValues.length + 1}`;
+                    getAllUsersQueryValues.push(queryParams.offset); //for the first page offset = 0, for the second page offset = previous offset + limit
+                }
+            } else if (queryParams.userId) {
                 getAllUsersQueryText += ` WHERE id = $${getAllUsersQueryValues.length + 1}`;
                 getAllUsersQueryValues.push(queryParams.userId);
             }
@@ -145,6 +144,28 @@ export class UserDal {
 
             return result.rows;
         } catch (err) {
+            throw err;
+        }
+    }
+
+    static async findUserByEmailOrUsername(client: pg.PoolClient, userIdentity: string) {
+        try{
+            const findUserQuery = {
+                text: `SELECT * FROM users WHERE username = $1 OR email = $1`,
+                values: [userIdentity]
+            };
+
+            const result = await client.query(findUserQuery);
+
+            if(result.rowCount === 0){
+                throw new CustomError('User not found', httpStatus.NOT_FOUND, {
+                    error: 'User not found',
+                    details: userIdentity
+                })
+            }
+
+            return result.rows[0];
+        }catch(err){
             throw err;
         }
     }

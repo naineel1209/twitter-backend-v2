@@ -8,7 +8,7 @@ const router: Router = Router()
 
 //Path : /api/auth
 
-router.use(localAuthRoutes)
+router.use('/', localAuthRoutes)
 router.use('/google-oauth', googleOAuthRouter)
 
 router.use('/logout', checkAuthenticated, AuthController.logoutController)

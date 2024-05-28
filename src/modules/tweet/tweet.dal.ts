@@ -1,24 +1,47 @@
 import pg from 'pg';
-import {ICreateTweet, IUpdateTweet} from './tweet';
+import {ICreateTweet, IGetFeed, IGetFollowingFeed, IUpdateTweet} from './tweet';
 import {CustomError} from '../../errors/custom-error';
 import httpStatus from 'http-status';
 
 export class TweetDal {
-    static async getFeed(client: pg.PoolClient, userId: number = -1) {
+    static async getFeed(client: pg.PoolClient, userId: number = -1, feedQuery: IGetFeed) {
         try {
+            const getFeedQueryValues = [];
+            let getFeedQueryText = `
+                SELECT t.*,
+                       u.username,
+                       u.profile_pic,
+                       u.name,
+                       u.bio,
+                       u.created_at as user_created_at
+                FROM tweets t
+                         INNER JOIN
+                     users u
+                     ON t.user_id = u.id
+                WHERE t.is_deleted = false
+            `;
+
+            if (feedQuery.search) {
+                getFeedQueryText += `AND t.tweet ILIKE $${getFeedQueryValues.length + 1} `
+                getFeedQueryValues.push(`%${feedQuery.search}%`)
+            }
+
+            getFeedQueryText += `ORDER BY CASE WHEN t.user_id != $${getFeedQueryValues.length + 1} THEN 0 ELSE 1 END, t.created_at DESC `
+            getFeedQueryValues.push(userId);
+
+            if (feedQuery.limit) {
+                getFeedQueryText += `LIMIT $${getFeedQueryValues.length + 1} `
+                getFeedQueryValues.push(feedQuery.limit);
+            }
+
+            if (feedQuery.offset) {
+                getFeedQueryText += `OFFSET $${getFeedQueryValues.length + 1} `
+                getFeedQueryValues.push(feedQuery.offset);
+            }
+
             const getFeedQuery = {
-                text: ` SELECT t.*, u.username, u.profile_pic, u.name, u.bio, u.created_at as user_created_at
-                        FROM (
-                                 tweets t
-                                     INNER JOIN
-                                     users u
-                                 ON t.user_id = u.id
-                                 )
-                        WHERE t.is_deleted = false
-                        ORDER BY CASE WHEN t.user_id != $1 THEN 0 ELSE 1 END, -- Non-user tweets first, then user tweets
-                                 t.created_at DESC; -- For each group, order by creation time in descending order
-                `,
-                values: [userId]
+                text: getFeedQueryText,
+                values: getFeedQueryValues,
             }
 
             const result = await client.query(getFeedQuery);
@@ -111,6 +134,7 @@ export class TweetDal {
                 }
             }
 
+            updateTweetQueryFields.push(`updated_at = NOW()`)
             updateTweetQueryText += `SET ${updateTweetQueryFields.join(', ')} WHERE id = $${updateTweetQueryValues.length + 1} 
             AND 
             is_deleted = false
@@ -188,24 +212,46 @@ export class TweetDal {
         }
     }
 
-    static async getFollowingFeed(client: pg.PoolClient, userId: number) {
+    static async getFollowingFeed(client: pg.PoolClient, userId: number, feedQuery: IGetFollowingFeed) {
         try {
+
+            const getFollowingFeedQueryValues = [];
+
+            let getFollowingIdSubQueryText = `SELECT following_id
+                                              FROM follower_following
+                                              WHERE follower_id = $${getFollowingFeedQueryValues.length + 1}`;
+            getFollowingFeedQueryValues.push(userId);
+
+            let getFollowingFeedQueryText = `SELECT t.*,
+                                                    u.username,
+                                                    u.profile_pic,
+                                                    u.name,
+                                                    u.bio,
+                                                    u.created_at as user_created_at
+                                             FROM (
+                                                      tweets t
+                                                          INNER JOIN
+                                                          (${getFollowingIdSubQueryText}) f
+                                                      ON t.user_id = f.following_id
+                                                      )
+                                                      INNER JOIN users u ON t.user_id = u.id
+                                             WHERE t.is_deleted = false
+                                             ORDER BY t.created_at DESC 
+            `;
+
+            if (feedQuery.limit) {
+                getFollowingFeedQueryText += `LIMIT $${getFollowingFeedQueryValues.length + 1} `;
+                getFollowingFeedQueryValues.push(feedQuery.limit);
+            }
+
+            if (feedQuery.offset) {
+                getFollowingFeedQueryText += `OFFSET $${getFollowingFeedQueryValues.length + 1} `;
+                getFollowingFeedQueryValues.push(feedQuery.offset);
+            }
+
             const getFollowingFeedQuery = {
-                text: `SELECT t.*, u.username, u.profile_pic, u.name, u.bio, u.created_at as user_created_at
-                       FROM (
-                                tweets t
-                                    INNER JOIN
-                                    (SELECT following_id
-                                     FROM follower_following
-                                     WHERE follower_id = $1 -- fetch the users the current user is following
-                                    ) f
-                                ON t.user_id = f.following_id
-                                )
-                                INNER JOIN users u ON t.user_id = u.id
-                       WHERE t.is_deleted = false
-                       ORDER BY t.created_at DESC;
-                `,
-                values: [userId]
+                text: getFollowingFeedQueryText,
+                values: getFollowingFeedQueryValues,
             }
 
             const result = await client.query(getFollowingFeedQuery)

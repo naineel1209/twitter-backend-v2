@@ -1,3 +1,5 @@
+import {IGenericQueryParams} from '../user/user';
+
 export type ICreateTweet = {
     tweet: string
     userId: number
@@ -11,10 +13,9 @@ export type IUpdateTweet = {
     userId: number
 }
 
-export type IDeleteTweet = {
-    tweetId: number
-    userId: number
-}
+export type IGetFeed = IGenericQueryParams
+
+export type IGetFollowingFeed = Omit<IGenericQueryParams, 'search'>
 
 // Define an interface representing the structure of the user object
 interface User {

@@ -11,7 +11,7 @@ export class TweetController {
                 userId = req.user.id;
             }
 
-            const feed = await tweetService.getFeed(userId);
+            const feed = await tweetService.getFeed(userId, req.query);
 
             return res.status(httpStatus.OK).json({
                 message: 'Feed fetched successfully',
@@ -97,7 +97,7 @@ export class TweetController {
             const {id: userId} = req.user
             const {id} = req.params;
 
-            const deletedTweet = await tweetService.deleteTweet({userId, tweetId: Number(id), delete: true})
+            await tweetService.deleteTweet({userId, tweetId: Number(id), delete: true})
 
             return res.status(httpStatus.OK).json({
                 message: 'Tweet deleted successfully'
@@ -108,28 +108,28 @@ export class TweetController {
     }
 
     static async getFollowingFeed(req: Request, res: Response, next: NextFunction) {
-        try{
+        try {
             // @ts-ignore
             const {id: userId} = req.user;
 
-            const feed = await tweetService.getFollowingFeed(userId);
+            const feed = await tweetService.getFollowingFeed(userId, req.query);
 
             return res.status(httpStatus.OK).json({
                 message: 'Following feed fetched successfully',
                 feed
             })
-        }catch(err){
+        } catch (err) {
             next(err);
         }
     }
 
-    static async  getTweet(req: Request, res: Response, next: NextFunction) {
-        try{
+    static async getTweet(req: Request, res: Response, next: NextFunction) {
+        try {
             const {tweetId} = req.params;
 
             const tweet = await tweetService.getTweet(Number(tweetId));
 
-            if(tweet === null || tweet === undefined){
+            if (tweet === null || tweet === undefined) {
                 return res.status(httpStatus.NOT_FOUND).json({
                     message: 'Tweet not found'
                 });
@@ -139,7 +139,7 @@ export class TweetController {
                 message: 'Tweet fetched successfully',
                 tweet
             });
-        }catch(err){
+        } catch (err) {
             next(err);
         }
     }

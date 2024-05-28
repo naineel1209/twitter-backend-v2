@@ -7,4 +7,8 @@ export type IEnv = {
     GOOGLE_CLIENT_SECRET: string,
     JWT_SECRET: string,
     JWT_EXPIRATION: string,
+    EMAIL: string,
+    APP_PASSWORD: string,
+    ENCRYPTION_KEY: string,
+    ENCRYPTION_IV: string
 }

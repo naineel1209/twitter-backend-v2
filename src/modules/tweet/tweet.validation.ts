@@ -27,3 +27,14 @@ export const deleteTweetParamSchema = Joi.object({
 export const getTweetParamSchema = Joi.object({
     tweetId: Joi.number().integer().required(),
 })
+
+export const getFeedQuerySchema = Joi.object({
+    limit: Joi.number().integer().default(10),
+    offset: Joi.number().integer().default(0),
+    search: Joi.string().trim().min(1).optional(),
+})
+
+export const getFollowingFeedQuerySchema  = Joi.object({
+    limit: Joi.number().integer().default(10),
+    offset: Joi.number().integer().default(0),
+})

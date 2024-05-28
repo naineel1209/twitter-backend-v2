@@ -1,5 +1,5 @@
 import pg from 'pg';
-import {ICreateTweet, IUpdateTweet} from './tweet';
+import {ICreateTweet, IGetFeed, IGetFollowingFeed, IUpdateTweet} from './tweet';
 import {TweetDal} from './tweet.dal';
 import pool from '../../../config/pg.config';
 import {UtilsService} from '../../utils/utils.service';
@@ -9,10 +9,10 @@ class TweetService {
     constructor(private pgPool: pg.Pool) {
     }
 
-    async getFeed(userId: number) {
+    async getFeed(userId: number, feedQuery: IGetFeed) {
         const client = await this.pgPool.connect();
         try {
-            return await TweetDal.getFeed(client, userId);
+            return await TweetDal.getFeed(client, userId, feedQuery);
         } catch (err) {
             throw err;
         } finally {
@@ -100,11 +100,6 @@ class TweetService {
         const client = await this.pgPool.connect();
 
         try {
-            const tweet = await TweetDal.findTweetById(client, data.tweetId);
-
-            if (!tweet) {
-                throw new Error('Tweet not found');
-            }
 
             const ops = async () => {
                 let finalOpsResult = [];
@@ -118,7 +113,7 @@ class TweetService {
                 finalOpsResult.push(deleteLike);
 
                 //update the liked_tweets_count in the user table
-                const updateUserLikedTweetsCount = await UserDal.updateUser(client, {
+                await UserDal.updateUser(client, {
                     userId: data.userId,
                     liked_tweets_count: false
                 });
@@ -166,10 +161,10 @@ class TweetService {
         }
     }
 
-    async getFollowingFeed(userId: number) {
+    async getFollowingFeed(userId: number, feedQuery: IGetFollowingFeed) {
         const client = await this.pgPool.connect();
         try {
-            return await TweetDal.getFollowingFeed(client, userId);
+            return await TweetDal.getFollowingFeed(client, userId, feedQuery);
         } catch (err) {
             throw err;
         } finally {

@@ -1,8 +1,10 @@
 import {Router} from 'express';
-import {RequestBodyValidator, RequestParamsValidator} from '../../providers/validator';
+import {QueryParamsRequestValidator, RequestBodyValidator, RequestParamsValidator} from '../../providers/validator';
 import {checkAuthenticated} from '../../middlewares/auth.middleware';
 import {
     createTweetSchema,
+    getFeedQuerySchema,
+    getFollowingFeedQuerySchema,
     getTweetParamSchema,
     likeTweetParamSchema,
     unlikeTweetParamSchema,
@@ -16,8 +18,8 @@ const router: Router = Router();
 //Path: /api/tweet
 
 router
-    .get('/feed', TweetController.getFeed)
-    .get('/feed/following', checkAuthenticated, TweetController.getFollowingFeed)
+    .get('/feed', QueryParamsRequestValidator(getFeedQuerySchema), TweetController.getFeed)
+    .get('/feed/following', checkAuthenticated, QueryParamsRequestValidator(getFollowingFeedQuerySchema), TweetController.getFollowingFeed)
     .post('/', checkAuthenticated, RequestBodyValidator(createTweetSchema), TweetController.createTweet)
     .get('/:tweetId', RequestParamsValidator(getTweetParamSchema), TweetController.getTweet)
     .patch('/:id', checkAuthenticated, RequestBodyValidator(updateTweetSchema), RequestParamsValidator(updateTweetParamSchema), TweetController.updateTweet)

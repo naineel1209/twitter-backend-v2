@@ -14,6 +14,8 @@ import morgan from 'morgan'
 import {JoiError} from './errors/joi-error';
 import {passportDeSerializeCallback, passportSerializeCallback} from './modules/auth/auth.helper';
 import {CustomError} from './errors/custom-error';
+import transporter from '../config/nodemailer.config';
+import redisClient from '../config/redis.config';
 
 dotenv.config()
 
@@ -105,7 +107,12 @@ function startServer(): void {
 
     async function handleGracefulShutdown() {
         logger.info('Received kill signal, shutting down gracefully')
+
         await pgPool.end() // Close the pg pool
+        transporter.close() // Close the nodemailer transporter
+        await redisClient.quit()
+
+        // Close the nodemailer transporter
         server.close(() => {
             logger.info('Closed out remaining connections')
             process.exit(0)

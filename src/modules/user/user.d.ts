@@ -14,10 +14,12 @@ export type IUpdateUser = {
     liked_tweets_count?: boolean
 }
 
-//TODO - add limit, offset and search to all the get methods - tweets - users , etc.
-export type IGetAllUsers = {
+export type IGenericQueryParams = {
     limit?: number
     offset?: number
     search?: string
+}
+
+export type IGetAllUsersQueryParams = IGenericQueryParams & {
     userId?: number
 }
