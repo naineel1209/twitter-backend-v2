@@ -128,9 +128,38 @@ export class UserController {
 
     static async forgotPassword(req: Request, res: Response, next: NextFunction) {
         try {
-            await userService.forgotPassword(req.body.userIdentity)
+            await userService.forgotPassword({ userIdentity : req.query.userIdentity as string})
+
             return res.status(httpStatus.OK).json({
                 message: 'Forgot password link sent successfully',
+            });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    static async verifyToken(req: Request, res: Response, next: NextFunction) {
+        try {
+            //verified token and return success message if token is valid
+            const userId = await userService.verifyToken(req.query.token as string)
+
+            return res.status(httpStatus.OK).render('reset-password', {
+                userId
+            });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    static async resetPassword(req: Request, res: Response, next: NextFunction) {
+        try {
+            await userService.resetPassword({
+                userId: Number(req.body.userId),
+                password: req.body.password,
+            });
+
+            return res.status(httpStatus.OK).json({
+                message: 'Password reset successfully',
             });
         } catch (err) {
             next(err);

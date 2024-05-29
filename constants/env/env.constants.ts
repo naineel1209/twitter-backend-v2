@@ -12,8 +12,8 @@ const processEnv: Readonly<IEnv> = Object.freeze({
     JWT_SECRET: env.JWT_SECRET as string,
     JWT_EXPIRATION: env.JWT_EXPIRATION as string,
     EMAIL: env.EMAIL as string,
-    APP_PASSWORD: env.EMAIL_PASSWORD as string,
-    ENCRYPTION_KEY: env.ENCRIPTION_KEY as string,
+    APP_PASSWORD: env.APP_PASSWORD as string,
+    ENCRYPTION_KEY: env.ENCRYPTION_KEY as string,
     ENCRYPTION_IV: env.ENCRYPTION_IV as string
 })
 

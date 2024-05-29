@@ -2,6 +2,7 @@ import {IGetAllUsersQueryParams, IUpdateUser} from './user';
 import pg from 'pg';
 import {CustomError} from '../../errors/custom-error';
 import httpStatus from 'http-status';
+import Redis from 'ioredis';
 
 export class UserDal {
     static async updateUser(client: pg.PoolClient, data: IUpdateUser) {
@@ -149,15 +150,18 @@ export class UserDal {
     }
 
     static async findUserByEmailOrUsername(client: pg.PoolClient, userIdentity: string) {
-        try{
+        try {
             const findUserQuery = {
-                text: `SELECT * FROM users WHERE username = $1 OR email = $1`,
+                text: `SELECT *
+                       FROM users
+                       WHERE username = $1
+                          OR email = $1`,
                 values: [userIdentity]
             };
 
             const result = await client.query(findUserQuery);
 
-            if(result.rowCount === 0){
+            if (result.rowCount === 0) {
                 throw new CustomError('User not found', httpStatus.NOT_FOUND, {
                     error: 'User not found',
                     details: userIdentity
@@ -165,7 +169,110 @@ export class UserDal {
             }
 
             return result.rows[0];
-        }catch(err){
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    static async checkIfUserResetTokenExists(redisClient: Redis, userId: number) {
+        try {
+            const res = await redisClient.exists(`twitter-backend-v2:user-reset-token:${userId}`);
+
+            if (res >= 1) {
+                throw new CustomError('Token already present', httpStatus.NOT_FOUND, {
+                    error: 'Token already present',
+                    details: userId
+                })
+            }
+
+            return res;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    static async saveResetToken(redisClient: Redis, userId: number, resetToken: string) {
+        try {
+            const res = await redisClient.set(`twitter-backend-v2:user-reset-token:${userId}`, resetToken, 'EX', 60 * 10, 'NX')
+
+            if (res === null || !res) {
+                throw new CustomError('Token not saved', httpStatus.INTERNAL_SERVER_ERROR, {
+                    error: 'Token not saved',
+                    details: userId
+                })
+            }
+
+            return res;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    static async getResetToken(redisClient: Redis, userId: number) {
+        try {
+            const res = await redisClient.get(`twitter-backend-v2:user-reset-token:${userId}`);
+
+            if (res === null || !res) {
+                throw new CustomError('Token not found', httpStatus.NOT_FOUND, {
+                    error: 'Token not found',
+                    details: userId
+                })
+            }
+
+            return res;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    static async deleteResetToken(redisClient: Redis, userId: number) {
+        try {
+            const res = await redisClient.del(`twitter-backend-v2:user-reset-token:${userId}`);
+
+            if (res === 0) {
+                throw new CustomError('Token not found', httpStatus.NOT_FOUND, {
+                    error: 'Token not found',
+                    details: userId
+                })
+            }
+
+            return res;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    static async updateUserPasswordUpdateStatus(redisClient: Redis, userId: number) {
+        try {
+            const res = await redisClient.set(`twitter-backend-v2:user-password-updated:${userId}`, 'true', 'EX', 60 * 10, 'NX')
+
+            if (res === null || !res) {
+                throw new CustomError('Password update status not saved', httpStatus.INTERNAL_SERVER_ERROR, {
+                    error: 'Password update status not saved',
+                    details: userId
+                })
+            }
+
+            return res;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+
+    static async deleteUserPasswordUpdateStatus(redisClient: Redis, userId: number) {
+        try {
+            const res = await redisClient.del(`twitter-backend-v2:user-password-updated:${userId}`);
+
+            if (res === 0) {
+                throw new CustomError('Token not found', httpStatus.NOT_FOUND, {
+                    error: 'Token not found',
+                    details: userId
+                })
+            }
+
+            return res;
+        } catch (err) {
             throw err;
         }
     }

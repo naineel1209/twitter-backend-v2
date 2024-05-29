@@ -42,6 +42,9 @@ app.use(morgan('dev', {
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
 app.use(express.static('public'))
+app.set('view engine', `ejs`)
+app.set('views', 'src/views')
+
 app.use(session({
     secret: processEnv.JWT_SECRET,
     resave: false, // don't save session if unmodified

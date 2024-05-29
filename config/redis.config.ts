@@ -1,7 +1,7 @@
 import Redis from 'ioredis'
 import logger from './winston.config';
 
-const redisClient = new Redis("redis-16157.c301.ap-south-1-1.ec2.cloud.redislabs.com:16157",{
+const redisClient = new Redis({
     autoResubscribe: true,
     autoResendUnfulfilledCommands: true,
     connectTimeout: 10000, //10s

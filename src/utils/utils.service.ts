@@ -4,6 +4,7 @@ import {TransactionStatment} from '../providers/transaction.statment';
 import processEnv from '../../constants/env/env.constants';
 import aesjs from 'aes-js';
 import {fakerEN_IN} from '@faker-js/faker';
+import bcrypt from 'bcrypt';
 
 export class UtilsService {
     static async generateUsername(displayName: string) {
@@ -47,16 +48,16 @@ export class UtilsService {
         return uint8Array.buffer;
     }
 
-    static async encryptUserDetails(data: { userId: number }) {
+    static async encryptUserDetails(data: { userId: number, token: string }) {
         try {
-            const key = processEnv.ENCRYPTION_KEY; //128 bit = 16bytes
+            const key = Buffer.from(processEnv.ENCRYPTION_KEY); //128 bit = 16bytes
             const iv = Buffer.from(processEnv.ENCRYPTION_IV) //128 bit = 16bytes
 
             const dataText = JSON.stringify(data);
             const dataBytes = aesjs.utils.utf8.toBytes(dataText);
 
             // The counter is optional, and if omitted will begin at 1
-            const aesCtr = new aesjs.ModeOfOperation.ctr(this.stringToArrayBuffer(key), new aesjs.Counter(iv)) //this will start the counter at 5 and the counter helps in generating the IV for the encryption process
+            const aesCtr = new aesjs.ModeOfOperation.ctr(key, new aesjs.Counter(iv)) //this will start the counter at 5 and the counter helps in generating the IV for the encryption process
             const encryptedBytes = aesCtr.encrypt(dataBytes)
 
             // To print or store the binary data, you may convert it to hex
@@ -68,12 +69,13 @@ export class UtilsService {
 
     static async decryptUserDetails(encryptedHex: string) {
         try {
-            const key = processEnv.ENCRYPTION_KEY; //128 bit = 16bytes
+
+            const key = Buffer.from(processEnv.ENCRYPTION_KEY); //128 bit = 16bytes
             const iv = Buffer.from(processEnv.ENCRYPTION_IV); //128 bit = 16bytes
 
             const encryptedBytes = aesjs.utils.hex.toBytes(encryptedHex);
 
-            const aesCtr = new aesjs.ModeOfOperation.ctr(this.stringToArrayBuffer(key), new aesjs.Counter(iv))
+            const aesCtr = new aesjs.ModeOfOperation.ctr(key, new aesjs.Counter(iv))
 
             const decryptedBytes = aesCtr.decrypt(encryptedBytes)
 
@@ -91,5 +93,9 @@ export class UtilsService {
             length: 24,
             casing: 'lower',
         })
+    }
+
+    static async hashPassword(password: string) {
+        return await bcrypt.hash(password, 12)
     }
 }

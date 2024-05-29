@@ -23,3 +23,13 @@ export const UpdateUserSchema = Joi.object({
 export const UserForgotPasswordSchema = Joi.object({
     userIdentity: Joi.string().trim().required(),
 })
+
+export const UserForgotPasswordQueryParamsSchema = Joi.object({
+    token: Joi.string().trim().required(),
+})
+
+export const UserResetPasswordSchema = Joi.object({
+    password: Joi.string().trim().required(),
+    confirmPassword: Joi.string().trim().required().valid(Joi.ref('password')),
+    userId: Joi.number().integer().required(),
+})

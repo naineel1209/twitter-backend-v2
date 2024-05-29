@@ -6,8 +6,11 @@ import {
     GetAllUsersQueryParamsSchema,
     GetSingleUserParamsSchema,
     UpdateUserSchema,
-    UserForgotPasswordSchema
+    UserForgotPasswordQueryParamsSchema,
+    UserForgotPasswordSchema,
+    UserResetPasswordSchema
 } from './user.validation';
+import {allowResetPasswordMiddleware} from '../../providers/reset-password-middleware';
 
 const router: Router = Router();
 
@@ -17,7 +20,10 @@ router
     .get('/my-profile', checkAuthenticated, UserController.myProfile)
     .get('/followers', checkAuthenticated, UserController.getFollowers)
     .get('/following', checkAuthenticated, UserController.getFollowing)
-    .get('/forgot-password', RequestBodyValidator(UserForgotPasswordSchema), UserController.forgotPassword)
+    //forgot password routes
+    .get('/forgot-password', QueryParamsRequestValidator(UserForgotPasswordSchema), UserController.forgotPassword)
+    .get('/verify-token', QueryParamsRequestValidator(UserForgotPasswordQueryParamsSchema), UserController.verifyToken)
+    .post('/reset-password', RequestBodyValidator(UserResetPasswordSchema), allowResetPasswordMiddleware, UserController.resetPassword)
 
     //TODO User management routes - updates, delete, password change, etc.
     .get('/', QueryParamsRequestValidator(GetAllUsersQueryParamsSchema), UserController.getAllUsers)

@@ -2,7 +2,7 @@ import pg from 'pg';
 import {LocalAuthDal} from './localauth.dal';
 import pool from '../../../../config/pg.config';
 import {ILocalUserObj} from './localauth';
-import bcrypt from 'bcrypt';
+import {UtilsService} from '../../../utils/utils.service';
 
 class LocalAuthService {
     private pgPool: pg.Pool;
@@ -15,7 +15,7 @@ class LocalAuthService {
         const client = await this.pgPool.connect();
 
         try {
-            data.password = await bcrypt.hash(data.password, 12);
+            data.password = await UtilsService.hashPassword(data.password)
 
             return await LocalAuthDal.registerLocalUser(client, data);
         } catch (error) {
