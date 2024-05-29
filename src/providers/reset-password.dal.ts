@@ -5,6 +5,7 @@ import {CustomError} from '../errors/custom-error';
 export class ResetPasswordDal {
     static async checkUserPasswordUpdateStatus(redisClient: Redis, userId: number) {
         try {
+            //TODO - rewrite the keys of all the redis keys as constants in a separate file for more maintainability
             const res = await redisClient.get(`twitter-backend-v2:user-password-updated:${userId}`);
 
             if (res === null || !res || res !== 'true') {

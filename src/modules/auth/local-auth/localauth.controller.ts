@@ -39,8 +39,7 @@ export class LocalAuthController {
 
     static failure(req: Request, res: Response) {
         return res.status(httpStatus.UNAUTHORIZED).json({
-            message: 'Login failed',
-            data: req.user
+            message: 'Login failed'
         })
     }
 }
