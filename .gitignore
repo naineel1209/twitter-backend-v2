@@ -130,3 +130,4 @@ dist
 
 .idea/
 ignore-this-folder/
+/dump.rdb
