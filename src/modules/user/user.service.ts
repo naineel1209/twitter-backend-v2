@@ -87,8 +87,6 @@ class UserService {
             //generate a reset token for the user to be validated
             const resetToken = await UtilsService.generateResetToken();
 
-            //save the reset token in redis for the user
-            await UserDal.saveResetToken(redisClient, user.id, resetToken)
 
             //encrypt the user details along with the token
             const encryptedToken = await UtilsService.encryptUserDetails({userId: user.id, token: resetToken})
@@ -101,6 +99,9 @@ class UserService {
                 name: user.name,
                 token: encryptedToken
             });
+
+            //save the reset token in redis for the user
+            await UserDal.saveResetToken(redisClient, user.id, resetToken)
 
             return;
         } catch (err) {

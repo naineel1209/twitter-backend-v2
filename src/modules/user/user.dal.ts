@@ -3,6 +3,7 @@ import pg from 'pg';
 import {CustomError} from '../../errors/custom-error';
 import httpStatus from 'http-status';
 import Redis from 'ioredis';
+import {SERVICE_NAME, USER_PASSWORD_UPDATED, USER_RESET_TOKEN} from './user.helper';
 
 export class UserDal {
     static async updateUser(client: pg.PoolClient, data: IUpdateUser) {
@@ -73,6 +74,7 @@ export class UserDal {
         }
     }
 
+    //TODO implement a flag in followers to know the current user follows the user in the list
     static async getFollowers(client: pg.PoolClient, userId: number) {
         try {
             const getFollowersQuery = {
@@ -80,7 +82,8 @@ export class UserDal {
                        FROM (
                                 follower_following ff
                                     INNER JOIN public.users users on
-                                    ff.follower_id = users.id)
+                                    ff.follower_id = users.id
+                                )
                        WHERE following_id = $1;`,
                 values: [userId]
             };
@@ -132,6 +135,16 @@ export class UserDal {
             } else if (queryParams.userId) {
                 getAllUsersQueryText += ` WHERE id = $${getAllUsersQueryValues.length + 1}`;
                 getAllUsersQueryValues.push(queryParams.userId);
+
+                if (queryParams.limit) {
+                    getAllUsersQueryText += ` LIMIT $${getAllUsersQueryValues.length + 1}`;
+                    getAllUsersQueryValues.push(queryParams.limit);
+                }
+
+                if (queryParams.offset) {
+                    getAllUsersQueryText += ` OFFSET $${getAllUsersQueryValues.length + 1}`;
+                    getAllUsersQueryValues.push(queryParams.offset); //for the first page offset = 0, for the second page offset = previous offset + limit
+                }
             }
 
             getAllUsersQueryText += ';';
@@ -176,7 +189,7 @@ export class UserDal {
 
     static async checkIfUserResetTokenExists(redisClient: Redis, userId: number) {
         try {
-            const res = await redisClient.exists(`twitter-backend-v2:user-reset-token:${userId}`);
+            const res = await redisClient.exists(`${SERVICE_NAME}:${USER_RESET_TOKEN}:${userId}`);
 
             if (res >= 1) {
                 throw new CustomError('Token already present', httpStatus.NOT_FOUND, {
@@ -193,7 +206,7 @@ export class UserDal {
 
     static async saveResetToken(redisClient: Redis, userId: number, resetToken: string) {
         try {
-            const res = await redisClient.set(`twitter-backend-v2:user-reset-token:${userId}`, resetToken, 'EX', 60 * 10, 'NX')
+            const res = await redisClient.set(`${SERVICE_NAME}:${USER_RESET_TOKEN}:${userId}`, resetToken, 'EX', 60 * 10, 'NX')
 
             if (res === null || !res) {
                 throw new CustomError('Token not saved', httpStatus.INTERNAL_SERVER_ERROR, {
@@ -210,7 +223,7 @@ export class UserDal {
 
     static async getResetToken(redisClient: Redis, userId: number) {
         try {
-            const res = await redisClient.get(`twitter-backend-v2:user-reset-token:${userId}`);
+            const res = await redisClient.get(`${SERVICE_NAME}:${USER_RESET_TOKEN}:${userId}`);
 
             if (res === null || !res) {
                 throw new CustomError('Token not found', httpStatus.NOT_FOUND, {
@@ -227,7 +240,7 @@ export class UserDal {
 
     static async deleteResetToken(redisClient: Redis, userId: number) {
         try {
-            const res = await redisClient.del(`twitter-backend-v2:user-reset-token:${userId}`);
+            const res = await redisClient.del(`${SERVICE_NAME}:${USER_RESET_TOKEN}:${userId}`);
 
             if (res === 0) {
                 throw new CustomError('Token not found', httpStatus.NOT_FOUND, {
@@ -244,7 +257,7 @@ export class UserDal {
 
     static async updateUserPasswordUpdateStatus(redisClient: Redis, userId: number) {
         try {
-            const res = await redisClient.set(`twitter-backend-v2:user-password-updated:${userId}`, 'true', 'EX', 60 * 10, 'NX')
+            const res = await redisClient.set(`${SERVICE_NAME}:${USER_PASSWORD_UPDATED}:${userId}`, 'true', 'EX', 60 * 10, 'NX')
 
             if (res === null || !res) {
                 throw new CustomError('Password update status not saved', httpStatus.INTERNAL_SERVER_ERROR, {
@@ -262,7 +275,7 @@ export class UserDal {
 
     static async deleteUserPasswordUpdateStatus(redisClient: Redis, userId: number) {
         try {
-            const res = await redisClient.del(`twitter-backend-v2:user-password-updated:${userId}`);
+            const res = await redisClient.del(`${SERVICE_NAME}:${USER_PASSWORD_UPDATED}:${userId}`);
 
             if (res === 0) {
                 throw new CustomError('Token not found', httpStatus.NOT_FOUND, {
