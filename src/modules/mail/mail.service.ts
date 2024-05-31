@@ -3,6 +3,7 @@ import SMTPTransport from 'nodemailer/lib/smtp-transport';
 import transporter from '../../../config/nodemailer.config';
 import {ISendMail} from './mail';
 import processEnv from '../../../constants/env/env.constants';
+import {BASEPATH_URL} from './mail.helper';
 
 class MailService {
     constructor(private mailer: nodemailer.Transporter<SMTPTransport.SentMessageInfo>) {
@@ -22,7 +23,6 @@ class MailService {
     }
 
     async prepareForgotPasswordHTML(data: ISendMail) {
-        // TODO change the localhost to BASEPATH_URL env file
 
         return `<!DOCTYPE html>
 <html lang="en">
@@ -86,8 +86,7 @@ class MailService {
                 <li><strong>Step 2:</strong> Create a new strong password using our recommended guidelines (at least 12 characters, including uppercase and lowercase letters, numbers, and special characters).</li>
                 <li><strong>Step 3:</strong> Enter your new password and confirm it.</li>
             </ul>
-<!---->
-            <a href="http://localhost:${processEnv.PORT}/api/user/verify-token?token=${data.token}" class="button">Reset Password Now!</a>
+            <a href="${BASEPATH_URL}/api/user/verify-token?token=${data.token}" class="button">Reset Password Now!</a>
         </main>
     </div>
 </body>

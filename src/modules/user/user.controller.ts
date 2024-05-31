@@ -20,7 +20,7 @@ export class UserController {
             // @ts-ignore
             const {id: userId} = req.user;
 
-            const followers = await userService.getFollowers(userId);
+            const followers = await userService.getFollowers(userId, userId);
 
             return res.status(httpStatus.OK).json({
                 message: 'Followers fetched successfully',
@@ -36,7 +36,7 @@ export class UserController {
             // @ts-ignore
             const {id: userId} = req.user;
 
-            const following = await userService.getFollowing(userId);
+            const following = await userService.getFollowing(userId, userId);
 
             return res.status(httpStatus.OK).json({
                 message: 'Following fetched successfully',
@@ -81,9 +81,12 @@ export class UserController {
 
     static async getUserFollowers(req: Request, res: Response, next: NextFunction) {
         try {
+            // @ts-ignore
+            const {id: currentUserId} = req.user;
+
             const userId = Number(req.params.userId);
 
-            const followers = await userService.getFollowers(userId);
+            const followers = await userService.getFollowers(userId, currentUserId);
 
             return res.status(httpStatus.OK).json({
                 message: 'Followers fetched successfully',
@@ -96,9 +99,12 @@ export class UserController {
 
     static async getUserFollowing(req: Request, res: Response, next: NextFunction) {
         try {
+            // @ts-ignore
+            const {id: currentUserId} = req.user;
+
             const userId = Number(req.params.userId);
 
-            const followings = await userService.getFollowing(userId);
+            const followings = await userService.getFollowing(userId, currentUserId);
 
             return res.status(httpStatus.OK).json({
                 message: 'Following fetched successfully',

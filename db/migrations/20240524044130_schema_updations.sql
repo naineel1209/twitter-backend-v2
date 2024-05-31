@@ -7,6 +7,7 @@ ALTER TABLE users
 
 ALTER TABLE follower_following
     ADD CONSTRAINT "unique_follower_following" UNIQUE ("follower_id", "following_id");
+
 -- migrate:down
 ALTER TABLE follower_following
     DROP CONSTRAINT "unique_follower_following";

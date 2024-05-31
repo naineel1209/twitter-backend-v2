@@ -74,18 +74,26 @@ export class UserDal {
         }
     }
 
-    //TODO implement a flag in followers to know the current user follows the user in the list
-    static async getFollowers(client: pg.PoolClient, userId: number) {
+    static async getFollowers(client: pg.PoolClient, userId: number, currentUserId: number) {
         try {
             const getFollowersQuery = {
-                text: `SELECT users.* --details of the users following the current user
-                       FROM (
-                                follower_following ff
-                                    INNER JOIN public.users users on
-                                    ff.follower_id = users.id
-                                )
-                       WHERE following_id = $1;`,
-                values: [userId]
+                text: `SELECT user_followers.*,
+                              CASE
+                                  WHEN current_user_following.following_id IS NOT NULL THEN true
+                                  ELSE false END as "current_user_following"
+                       FROM (SELECT users.* --details of the user's followers
+                             FROM (
+                                      follower_following ff
+                                          INNER JOIN public.users users on
+                                          ff.follower_id = users.id
+                                      )
+                             WHERE ff.following_id = $1) as "user_followers"
+                                LEFT JOIN
+                            (SELECT following_id --details of the user that the current user is following
+                             FROM follower_following
+                             WHERE follower_id = $2) as "current_user_following"
+                            ON user_followers.id = current_user_following.following_id;`,
+                values: [userId, currentUserId]
             };
 
             const result = await client.query(getFollowersQuery);
@@ -96,13 +104,26 @@ export class UserDal {
         }
     }
 
-    static async getFollowing(client: pg.PoolClient, userId: number) {
+    static async getFollowing(client: pg.PoolClient, userId: number, currentUserId: number) {
         try {
             const getFollowingQuery = {
-                text: `SELECT users.* --details of the users the current user is following
-                       FROM (follower_following ff INNER JOIN public.users users on ff.following_id = users.id)
-                       WHERE follower_id = $1;`,
-                values: [userId]
+                text: `SELECT user_following.*,
+                              CASE
+                                  WHEN current_user_following.following_id IS NOT NULL THEN true
+                                  ELSE false END as "current_user_following"
+                       FROM (SELECT users.* --details of the user's following
+                             FROM (
+                                      follower_following ff
+                                          INNER JOIN public.users users on
+                                          ff.following_id = users.id
+                                      )
+                             WHERE ff.follower_id = $1) as "user_following"
+                                LEFT JOIN
+                            (SELECT following_id --details of the user that the current user is following
+                             FROM follower_following
+                             WHERE follower_id = $2) as "current_user_following"
+                            ON user_following.id = current_user_following.following_id;`,
+                values: [userId, currentUserId]
             };
 
             const result = await client.query(getFollowingQuery);

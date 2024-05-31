@@ -13,11 +13,11 @@ class UserService {
     constructor(private pgPool: pg.Pool, private redisClient: Redis) {
     }
 
-    async getFollowers(userId: number) {
+    async getFollowers(userId: number, currentUserId: number) {
         const client = await this.pgPool.connect();
 
         try {
-            return await UserDal.getFollowers(client, userId);
+            return await UserDal.getFollowers(client, userId, currentUserId);
         } catch (err) {
             throw err;
         } finally {
@@ -25,11 +25,11 @@ class UserService {
         }
     }
 
-    async getFollowing(userId: number) {
+    async getFollowing(userId: number, currentUserId: number) {
         const client = await this.pgPool.connect();
 
         try {
-            return await UserDal.getFollowing(client, userId);
+            return await UserDal.getFollowing(client, userId, currentUserId);
         } catch (err) {
             throw err;
         } finally {
