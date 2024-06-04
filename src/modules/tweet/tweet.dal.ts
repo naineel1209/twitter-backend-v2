@@ -1,5 +1,5 @@
 import pg from 'pg';
-import {ICreateTweet, IGetFeed, IGetFollowingFeed, IUpdateTweet} from './tweet';
+import {ICreateTweet, IGetFeed, IGetFollowingFeed, IQuoteTweet, IUpdateTweet} from './tweet';
 import {CustomError} from '../../errors/custom-error';
 import httpStatus from 'http-status';
 
@@ -8,25 +8,31 @@ export class TweetDal {
         try {
             const getFeedQueryValues = [];
             let getFeedQueryText = `
-                SELECT t.*,
-                       u.username,
-                       u.profile_pic,
-                       u.name,
-                       u.bio,
-                       u.created_at as user_created_at
-                FROM tweets t
-                         INNER JOIN
-                     users u
-                     ON t.user_id = u.id
-                WHERE t.is_deleted = false
+                SELECT t1.*,
+                       u1.username,
+                       u1.profile_pic,
+                       u1.name,
+                       u1.bio,
+                       u1.created_at  AS user_created_at,
+                       t2.tweet       AS attachment_tweet,
+                       u2.username    AS attachment_tweet_username,
+                       u2.profile_pic AS attachment_tweet_profile_pic,
+                       u2.name        AS attachment_tweet_user_name,
+                       u2.bio         AS attachment_tweet_bio,
+                       u2.created_at  AS attachment_tweet_user_created_at
+                FROM tweets t1
+                         LEFT JOIN tweets t2 ON t1.attachment_tweet_id = t2.id
+                         INNER JOIN users u1 ON t1.user_id = u1.id
+                         LEFT JOIN users u2 ON t2.user_id = u2.id
+                WHERE t1.is_deleted = false
             `;
 
             if (feedQuery.search) {
-                getFeedQueryText += `AND t.tweet ILIKE $${getFeedQueryValues.length + 1} `
+                getFeedQueryText += `AND t1.tweet ILIKE $${getFeedQueryValues.length + 1} `
                 getFeedQueryValues.push(`%${feedQuery.search}%`)
             }
 
-            getFeedQueryText += `ORDER BY CASE WHEN t.user_id != $${getFeedQueryValues.length + 1} THEN 0 ELSE 1 END, t.created_at DESC `
+            getFeedQueryText += `ORDER BY CASE WHEN t1.user_id != $${getFeedQueryValues.length + 1} THEN 0 ELSE 1 END, t1.created_at DESC `
             getFeedQueryValues.push(userId);
 
             if (feedQuery.limit) {
@@ -35,8 +41,10 @@ export class TweetDal {
             }
 
             if (feedQuery.offset) {
-                getFeedQueryText += `OFFSET $${getFeedQueryValues.length + 1} `
+                getFeedQueryText += `OFFSET $${getFeedQueryValues.length + 1} ;`
                 getFeedQueryValues.push(feedQuery.offset);
+            } else {
+                getFeedQueryText += `;`
             }
 
             const getFeedQuery = {
@@ -76,16 +84,39 @@ export class TweetDal {
         }
     }
 
-    static async createTweet(client: pg.PoolClient, data: ICreateTweet) {
+    static async createTweet(client: pg.PoolClient, data: ICreateTweet | IQuoteTweet) {
         try {
-            const {tweet, userId} = data;
+            const createTweetQueryFields: string[] = [];
+            const createTweetQueryValues: any[] = [];
+            const createTweetParameters: string[] = [];
+
+            Object.keys(data).forEach((key, index) => {
+                if (key === 'attachmentTweetId') {
+                    createTweetQueryFields.push('attachment_tweet_id')
+                    createTweetParameters.push(`$${createTweetQueryValues.length + 1}`)
+                    createTweetQueryValues.push((data as IQuoteTweet)[key])
+
+                    createTweetQueryFields.push('is_quote_tweet')
+                    createTweetParameters.push(`$${createTweetQueryValues.length + 1}`)
+                    createTweetQueryValues.push(true)
+                } else if (key === 'userId') {
+                    createTweetQueryFields.push('user_id')
+                    createTweetParameters.push(`$${createTweetQueryValues.length + 1}`)
+                    createTweetQueryValues.push((data as IQuoteTweet)[key])
+                } else if (key === 'tweet') {
+                    createTweetQueryFields.push('tweet')
+                    createTweetParameters.push(`$${createTweetQueryValues.length + 1}`)
+                    createTweetQueryValues.push((data as IQuoteTweet)[key])
+                }
+            })
+
+            const createTweetQueryText = `INSERT INTO tweets (${createTweetQueryFields.join(',')})
+                                          VALUES (${createTweetParameters.join(',')});
+            `;
+
             const createTweetQuery = {
-                text: `INSERT INTO tweets
-                           (tweet, user_id)
-                       VALUES ($1, $2)
-                       RETURNING *
-                `,
-                values: [tweet, userId]
+                text: createTweetQueryText,
+                values: createTweetQueryValues,
             }
 
             const result = await client.query(createTweetQuery)
@@ -125,6 +156,10 @@ export class TweetDal {
                     updateTweetQueryFields.push(`likes_count = likes_count + 1`)
                 } else if (key === 'like' && data[key] === false) {
                     updateTweetQueryFields.push(`likes_count = likes_count - 1`)
+                } else if (key === 'retweet' && data[key] === true) {
+                    updateTweetQueryFields.push(`retweet_count = retweet_count + 1`)
+                } else if (key === 'retweet' && data[key] === false) {
+                    updateTweetQueryFields.push(`retweet_count = retweet_count - 1`)
                 } else if (key === 'tweet') {
                     updateTweetQueryFields.push(`tweet = $${updateTweetQueryValues.length + 1}`)
                     updateTweetQueryValues.push(data[key])
@@ -138,11 +173,12 @@ export class TweetDal {
             updateTweetQueryText += `SET ${updateTweetQueryFields.join(', ')} WHERE id = $${updateTweetQueryValues.length + 1} 
             AND 
             is_deleted = false
-            AND
-            user_id = $${updateTweetQueryValues.length + 2} 
+            ${((data.tweet || data.delete) && data.userId) ? `AND user_id = $${updateTweetQueryValues.length + 2}` : ''} 
             RETURNING *;`
             updateTweetQueryValues.push(data.tweetId)
-            updateTweetQueryValues.push(data.userId)
+            if ((data.tweet || data.delete) && data.userId){
+                updateTweetQueryValues.push(data.userId)
+            }
 
             const updateTweetQuery = {
                 text: updateTweetQueryText,
@@ -236,7 +272,7 @@ export class TweetDal {
                                                       )
                                                       INNER JOIN users u ON t.user_id = u.id
                                              WHERE t.is_deleted = false
-                                             ORDER BY t.created_at DESC 
+                                             ORDER BY t.created_at DESC
             `;
 
             if (feedQuery.limit) {

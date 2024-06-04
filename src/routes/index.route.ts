@@ -1,5 +1,5 @@
 import {Router} from 'express';
-import {authRouter, followerRouter, tweetRouter, userRouter} from '../modules/';
+import {authRouter, followerRouter, retweetRouter, tweetRouter, userRouter} from '../modules/';
 
 const router: Router = Router()
 
@@ -14,5 +14,7 @@ router.use('/tweet', tweetRouter)
 router.use('/follower', followerRouter)
 
 router.use('/user', userRouter)
+
+router.use('/retweet', retweetRouter)
 
 export default router

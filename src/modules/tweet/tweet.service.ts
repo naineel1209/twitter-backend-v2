@@ -1,5 +1,5 @@
 import pg from 'pg';
-import {ICreateTweet, IGetFeed, IGetFollowingFeed, IUpdateTweet} from './tweet';
+import {ICreateTweet, IGetFeed, IGetFollowingFeed, IQuoteTweet, IUpdateTweet} from './tweet';
 import {TweetDal} from './tweet.dal';
 import pool from '../../../config/pg.config';
 import {UtilsService} from '../../utils/utils.service';
@@ -77,7 +77,7 @@ class TweetService {
 
                 //update the liked_tweets_count in the user table
                 const updateUserLikedTweetsCount = await UserDal.updateUser(client, {
-                    userId: data.userId,
+                    userId: data.userId as number,
                     liked_tweets_count: true
                 });
                 finalOpsResult.push(updateUserLikedTweetsCount);
@@ -114,7 +114,7 @@ class TweetService {
 
                 //update the liked_tweets_count in the user table
                 await UserDal.updateUser(client, {
-                    userId: data.userId,
+                    userId: data.userId as number,
                     liked_tweets_count: false
                 });
 
@@ -144,7 +144,7 @@ class TweetService {
                 finalOpsResult.push(createdTweet);
 
                 //update the tweets count in the user table
-                const updatedUser = await UserDal.updateUser(client, {userId: data.userId, tweets_count: false})
+                const updatedUser = await UserDal.updateUser(client, {userId: data.userId as number, tweets_count: false})
                 finalOpsResult.push(updatedUser);
 
                 return finalOpsResult;
@@ -176,6 +176,34 @@ class TweetService {
         const client = await this.pgPool.connect();
         try {
             return await TweetDal.getTweet(client, tweetId);
+        } catch (err) {
+            throw err;
+        } finally {
+            client.release();
+        }
+    }
+
+    async quoteTweet(data: IQuoteTweet) {
+        const client = await this.pgPool.connect();
+        try {
+            const ops = async () => {
+                const finalOpsResult = [];
+
+                //insert the tweet in the tweet table
+                const createdTweet = await TweetDal.createTweet(client, data);
+                finalOpsResult.push(createdTweet);
+
+                //update the tweets count in the user table
+                const updatedUser = await UserDal.updateUser(client, {userId: data.userId, tweets_count: true})
+                finalOpsResult.push(updatedUser);
+
+                return finalOpsResult;
+            }
+
+            //use the transaction wrapper to wrap the transaction operations
+            const finalOpsResult = await UtilsService.transactionWrapper(client, ops);
+
+            return finalOpsResult[0]; //0th index will always be the created tweet
         } catch (err) {
             throw err;
         } finally {

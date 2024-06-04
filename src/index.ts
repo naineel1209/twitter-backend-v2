@@ -113,7 +113,7 @@ function startServer(): void {
 
         await pgPool.end() // Close the pg pool
         transporter.close() // Close the nodemailer transporter
-        await redisClient.quit()
+        await redisClient.quit() //Close the redis client
 
         // Close the nodemailer transporter
         server.close(() => {

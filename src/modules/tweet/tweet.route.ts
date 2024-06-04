@@ -7,6 +7,8 @@ import {
     getFollowingFeedQuerySchema,
     getTweetParamSchema,
     likeTweetParamSchema,
+    quoteTweetBodySchema,
+    quoteTweetParamSchema,
     unlikeTweetParamSchema,
     updateTweetParamSchema,
     updateTweetSchema
@@ -21,10 +23,11 @@ router
     .get('/feed', QueryParamsRequestValidator(getFeedQuerySchema), TweetController.getFeed)
     .get('/feed/following', checkAuthenticated, QueryParamsRequestValidator(getFollowingFeedQuerySchema), TweetController.getFollowingFeed)
     .post('/', checkAuthenticated, RequestBodyValidator(createTweetSchema), TweetController.createTweet)
-    .get('/:tweetId', RequestParamsValidator(getTweetParamSchema), TweetController.getTweet)
+    .get('/:id', RequestParamsValidator(getTweetParamSchema), TweetController.getTweet)
     .patch('/:id', checkAuthenticated, RequestBodyValidator(updateTweetSchema), RequestParamsValidator(updateTweetParamSchema), TweetController.updateTweet)
     .post('/:id/like', checkAuthenticated, RequestParamsValidator(likeTweetParamSchema), TweetController.likeTweet)
     .post('/:id/unlike', checkAuthenticated, RequestParamsValidator(unlikeTweetParamSchema), TweetController.unlikeTweet)
     .delete('/:id', checkAuthenticated, RequestParamsValidator(unlikeTweetParamSchema), TweetController.deleteTweet)
+    .post('/:tweetId/quote', checkAuthenticated, RequestParamsValidator(quoteTweetParamSchema), RequestBodyValidator(quoteTweetBodySchema), TweetController.quoteTweet)
 
 export default router;

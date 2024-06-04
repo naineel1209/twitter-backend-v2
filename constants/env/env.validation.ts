@@ -16,7 +16,10 @@ const envValidationSchema = Joi.object({
     EMAIL: Joi.string().email().required(),
     APP_PASSWORD: Joi.string().trim().required(),
     ENCRYPTION_KEY: Joi.string().trim().required(),
-    ENCRYPTION_IV: Joi.string().trim().required()
+    ENCRYPTION_IV: Joi.string().trim().required(),
+    REDIS_PASSWORD: Joi.string().trim().required(),
+    REDIS_PORT: Joi.number(),
+    REDIS_HOST: Joi.string().trim().required(),
 })
 
 //this will throw an error if any of the env variables are invalid

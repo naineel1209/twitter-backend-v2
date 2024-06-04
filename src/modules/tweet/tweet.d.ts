@@ -9,8 +9,9 @@ export type IUpdateTweet = {
     tweet?: string
     like?: boolean
     delete?: boolean
+    retweet?: boolean
     tweetId: number
-    userId: number
+    userId?: number
 }
 
 export type IGetFeed = IGenericQueryParams
@@ -21,6 +22,10 @@ export type IGetFollowingFeed = Omit<IGenericQueryParams, 'search'>
 interface User {
     user_id: string; // Adjust the type accordingly (e.g., number, string, etc.)
     // Add other properties if needed
+}
+
+export type IQuoteTweet = ICreateTweet & {
+    attachmentTweetId: number
 }
 
 // Now, augment the Express namespace to include the updated user property

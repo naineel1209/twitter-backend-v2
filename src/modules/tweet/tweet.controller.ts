@@ -63,7 +63,7 @@ export class TweetController {
             const {id: userId} = req.user;
             const {id} = req.params;
 
-            const likedTweet = await tweetService.likeTweet({userId, tweetId: Number(id), like: true});
+            const likedTweet = await tweetService.likeTweet({tweetId: Number(id), like: true});
 
             return res.status(httpStatus.OK).json({
                 message: 'Tweet liked successfully',
@@ -80,7 +80,7 @@ export class TweetController {
             const {id: userId} = req.user;
             const {id} = req.params;
 
-            const unlikedTweet = await tweetService.unlikeTweet({userId, tweetId: Number(id), like: false});
+            const unlikedTweet = await tweetService.unlikeTweet({tweetId: Number(id), like: false});
 
             return res.status(httpStatus.OK).json({
                 message: 'Tweet unliked successfully',
@@ -125,7 +125,7 @@ export class TweetController {
 
     static async getTweet(req: Request, res: Response, next: NextFunction) {
         try {
-            const {tweetId} = req.params;
+            const {id: tweetId} = req.params;
 
             const tweet = await tweetService.getTweet(Number(tweetId));
 
@@ -139,6 +139,24 @@ export class TweetController {
                 message: 'Tweet fetched successfully',
                 tweet
             });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    static async quoteTweet(req: Request, res: Response, next: NextFunction) {
+        try {
+            // @ts-ignore
+            const {id: userId} = req.user;
+            const {tweetId} = req.params;
+            const {tweet} = req.body;
+
+            const quotedTweet = await tweetService.quoteTweet({userId, attachmentTweetId: Number(tweetId), tweet});
+
+            return res.status(httpStatus.CREATED).json({
+                message: 'Tweet quoted successfully',
+                tweet: quotedTweet
+            })
         } catch (err) {
             next(err);
         }

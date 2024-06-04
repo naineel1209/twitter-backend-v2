@@ -37,17 +37,6 @@ export class UtilsService {
         return opsResult
     }
 
-    static stringToArrayBuffer(str: string) {
-        // Create a TextEncoder
-        const encoder = new TextEncoder();
-
-        // Encode the string into a Uint8Array
-        const uint8Array = encoder.encode(str);
-
-        // Return the underlying ArrayBuffer
-        return uint8Array.buffer;
-    }
-
     static async encryptUserDetails(data: { userId: number, token: string }) {
         try {
             const key = Buffer.from(processEnv.ENCRYPTION_KEY); //128 bit = 16bytes

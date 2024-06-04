@@ -1,7 +1,9 @@
 import Redis from 'ioredis'
 import logger from './winston.config';
+import processEnv from '../constants/env/env.constants';
+import {performance} from 'node:perf_hooks';
 
-const redisClient = new Redis({
+const redisClient = new Redis(`rediss://default:${processEnv.REDIS_PASSWORD}@${processEnv.REDIS_HOST}:${processEnv.REDIS_PORT}`, {
     autoResubscribe: true,
     autoResendUnfulfilledCommands: true,
     connectTimeout: 10000, //10s
@@ -11,8 +13,19 @@ const redisClient = new Redis({
     }
 });
 
-redisClient.on('connect', () => {
+redisClient.on('connect', async () => {
     logger.info('Connected to Redis');
+
+    const startTime = performance.now()
+
+    await redisClient.ping((err, result) => {
+        if (err) {
+            logger.error(`Error pinging Redis: ${err}`);
+        } else {
+            const endTime = performance.now();
+            logger.info(`Redis pinged successfully in ${endTime - startTime}ms`);
+        }
+    });
 })
 
 redisClient.on('error', (err) => {

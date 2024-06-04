@@ -11,4 +11,7 @@ export type IEnv = {
     APP_PASSWORD: string,
     ENCRYPTION_KEY: string,
     ENCRYPTION_IV: string
+    REDIS_PASSWORD: string,
+    REDIS_PORT: string,
+    REDIS_HOST: string,
 }

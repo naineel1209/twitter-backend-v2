@@ -88,6 +88,40 @@ ALTER SEQUENCE public.likes_id_seq OWNED BY public.likes.id;
 
 
 --
+-- Name: retweets; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.retweets (
+    id integer NOT NULL,
+    tweet_id integer NOT NULL,
+    user_id integer NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    deleted_at timestamp with time zone
+);
+
+
+--
+-- Name: retweets_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.retweets_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: retweets_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.retweets_id_seq OWNED BY public.retweets.id;
+
+
+--
 -- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -108,7 +142,10 @@ CREATE TABLE public.tweets (
     is_deleted boolean DEFAULT false,
     created_at timestamp with time zone DEFAULT now(),
     updated_at timestamp with time zone DEFAULT now(),
-    deleted_at timestamp with time zone
+    deleted_at timestamp with time zone,
+    retweet_count integer DEFAULT 0,
+    is_quote_tweet boolean DEFAULT false,
+    attachment_tweet_id integer
 );
 
 
@@ -206,6 +243,13 @@ ALTER TABLE ONLY public.likes ALTER COLUMN id SET DEFAULT nextval('public.likes_
 
 
 --
+-- Name: retweets id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.retweets ALTER COLUMN id SET DEFAULT nextval('public.retweets_id_seq'::regclass);
+
+
+--
 -- Name: tweets id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -233,6 +277,14 @@ ALTER TABLE ONLY public.follower_following
 
 ALTER TABLE ONLY public.likes
     ADD CONSTRAINT likes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: retweets retweets_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.retweets
+    ADD CONSTRAINT retweets_pkey PRIMARY KEY (id);
 
 
 --
@@ -273,6 +325,14 @@ ALTER TABLE ONLY public.follower_following
 
 ALTER TABLE ONLY public.likes
     ADD CONSTRAINT unique_user_tweet UNIQUE (user_id, tweet_id);
+
+
+--
+-- Name: retweets unique_user_tweet_retweet; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.retweets
+    ADD CONSTRAINT unique_user_tweet_retweet UNIQUE (user_id, tweet_id);
 
 
 --
@@ -339,6 +399,30 @@ ALTER TABLE ONLY public.likes
 
 
 --
+-- Name: retweets retweets_tweet_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.retweets
+    ADD CONSTRAINT retweets_tweet_id_fkey FOREIGN KEY (tweet_id) REFERENCES public.tweets(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: retweets retweets_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.retweets
+    ADD CONSTRAINT retweets_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: tweets tweets_attachment_tweet_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tweets
+    ADD CONSTRAINT tweets_attachment_tweet_id_fkey FOREIGN KEY (attachment_tweet_id) REFERENCES public.tweets(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
 -- Name: tweets tweets_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -357,4 +441,5 @@ ALTER TABLE ONLY public.tweets
 
 INSERT INTO public.schema_migrations (version) VALUES
     ('20240520093416'),
-    ('20240524044130');
+    ('20240524044130'),
+    ('20240603115508');
