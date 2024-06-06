@@ -140,12 +140,18 @@ class TweetService {
                 const finalOpsResult = [];
 
                 //delete the tweet in the tweet table
-                const createdTweet = await TweetDal.updateTweet(client, data); //delete: true in data
-                finalOpsResult.push(createdTweet);
+                const deletedTweet = await TweetDal.updateTweet(client, data); //delete: true in data
+                finalOpsResult.push(deletedTweet);
 
                 //update the tweets count in the user table
                 const updatedUser = await UserDal.updateUser(client, {userId: data.userId as number, tweets_count: false})
                 finalOpsResult.push(updatedUser);
+
+                //if the tweet is a quote tweet, update the quote_tweets count in the tweet table
+                if(deletedTweet.attachment_tweet_id !== null) {
+                    const updatedTweet = await TweetDal.updateTweet(client, {tweetId: deletedTweet.attachmentTweetId, quote: false});
+                    finalOpsResult.push(updatedTweet);
+                }
 
                 return finalOpsResult;
             }
@@ -196,6 +202,9 @@ class TweetService {
                 //update the tweets count in the user table
                 const updatedUser = await UserDal.updateUser(client, {userId: data.userId, tweets_count: true})
                 finalOpsResult.push(updatedUser);
+
+                //update the quote_tweets count in the tweet table
+                const updatedTweet = await TweetDal.updateTweet(client, {tweetId: data.attachmentTweetId, quote: true})
 
                 return finalOpsResult;
             }

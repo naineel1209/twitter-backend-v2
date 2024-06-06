@@ -131,3 +131,6 @@ dist
 .idea/
 ignore-this-folder/
 dump.rdb
+!/eslint.config.js
+
+eslint.config.js

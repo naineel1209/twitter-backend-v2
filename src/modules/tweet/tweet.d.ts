@@ -10,8 +10,9 @@ export type IUpdateTweet = {
     like?: boolean
     delete?: boolean
     retweet?: boolean
-    tweetId: number
+    quote?: boolean
     userId?: number
+    tweetId: number
 }
 
 export type IGetFeed = IGenericQueryParams

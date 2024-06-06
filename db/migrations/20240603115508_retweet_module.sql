@@ -10,7 +10,7 @@ CREATE TABLE retweets
 );
 
 ALTER TABLE tweets
-    ADD COLUMN retweet_count INTEGER DEFAULT 0;
+    ADD COLUMN retweets_count INTEGER DEFAULT 0;
 
 ALTER TABLE retweets
     ADD CONSTRAINT unique_user_tweet_retweet UNIQUE (user_id, tweet_id);
@@ -21,7 +21,13 @@ ALTER TABLE tweets
 ALTER TABLE tweets
     ADD COLUMN attachment_tweet_id INTEGER REFERENCES tweets (id) ON DELETE SET NULL ON UPDATE CASCADE;
 
+ALTER TABLE tweets
+    ADD COLUMN quotes_count INTEGER DEFAULT 0;
+
 -- migrate:down
+ALTER TABLE tweets
+    DROP COLUMN quotes_count;
+
 ALTER TABLE tweets
     DROP COLUMN is_quote_tweet;
 
@@ -32,6 +38,6 @@ ALTER TABLE retweets
     DROP CONSTRAINT unique_user_tweet_retweet;
 
 ALTER TABLE tweets
-    DROP COLUMN retweet_count;
+    DROP COLUMN retweets_count;
 
 DROP TABLE retweets;

@@ -157,9 +157,13 @@ export class TweetDal {
                 } else if (key === 'like' && data[key] === false) {
                     updateTweetQueryFields.push(`likes_count = likes_count - 1`)
                 } else if (key === 'retweet' && data[key] === true) {
-                    updateTweetQueryFields.push(`retweet_count = retweet_count + 1`)
+                    updateTweetQueryFields.push(`retweets_count = retweets_count + 1`)
                 } else if (key === 'retweet' && data[key] === false) {
-                    updateTweetQueryFields.push(`retweet_count = retweet_count - 1`)
+                    updateTweetQueryFields.push(`retweets_count = retweets_count - 1`)
+                } else if (key === 'quote' && data[key] === true) {
+                    updateTweetQueryFields.push(`quotes_count = quotes_count + 1`)
+                } else if (key === 'quote' && data[key] === false) {
+                    updateTweetQueryFields.push(`quotes_count = quotes_count - 1`)
                 } else if (key === 'tweet') {
                     updateTweetQueryFields.push(`tweet = $${updateTweetQueryValues.length + 1}`)
                     updateTweetQueryValues.push(data[key])

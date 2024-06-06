@@ -143,9 +143,10 @@ CREATE TABLE public.tweets (
     created_at timestamp with time zone DEFAULT now(),
     updated_at timestamp with time zone DEFAULT now(),
     deleted_at timestamp with time zone,
-    retweet_count integer DEFAULT 0,
+    retweets_count integer DEFAULT 0,
     is_quote_tweet boolean DEFAULT false,
-    attachment_tweet_id integer
+    attachment_tweet_id integer,
+    quotes_count integer DEFAULT 0
 );
 
 
