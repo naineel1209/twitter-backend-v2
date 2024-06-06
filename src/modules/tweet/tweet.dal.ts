@@ -301,4 +301,12 @@ export class TweetDal {
             throw err;
         }
     }
+
+    static getTweetEngagements(client: pg.PoolClient, tweetId: number) {
+        //get the details of the quotes on the tweet, likes on the tweet and retweets on the tweet
+        const getTweetsEngagementsQueryText = ``;
+        const getTweetsEngagementsQueryValues = [];
+
+        return Promise.resolve({});
+    }
 }

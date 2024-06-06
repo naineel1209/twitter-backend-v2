@@ -29,5 +29,6 @@ router
     .post('/:id/unlike', checkAuthenticated, RequestParamsValidator(unlikeTweetParamSchema), TweetController.unlikeTweet)
     .delete('/:id', checkAuthenticated, RequestParamsValidator(unlikeTweetParamSchema), TweetController.deleteTweet)
     .post('/:tweetId/quote', checkAuthenticated, RequestParamsValidator(quoteTweetParamSchema), RequestBodyValidator(quoteTweetBodySchema), TweetController.quoteTweet)
+    .get('/:tweetId/post-engagements', TweetController.getTweetEngagements)
 
 export default router;

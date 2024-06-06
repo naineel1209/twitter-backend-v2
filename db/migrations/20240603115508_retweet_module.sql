@@ -24,7 +24,22 @@ ALTER TABLE tweets
 ALTER TABLE tweets
     ADD COLUMN quotes_count INTEGER DEFAULT 0;
 
+CREATE INDEX idx_tweets_quoted_tweet_id ON tweets(attachment_tweet_id);
+CREATE INDEX idx_tweets_user_id ON tweets(user_id);
+CREATE INDEX idx_retweets_tweet_id ON retweets(tweet_id);
+CREATE INDEX idx_retweets_user_id ON retweets(user_id);
+CREATE INDEX idx_likes_tweet_id ON likes(tweet_id);
+CREATE INDEX idx_likes_user_id ON likes(user_id);
+
 -- migrate:down
+
+DROP INDEX idx_likes_user_id;
+DROP INDEX idx_likes_tweet_id;
+DROP INDEX idx_retweets_user_id;
+DROP INDEX idx_retweets_tweet_id;
+DROP INDEX idx_tweets_user_id;
+DROP INDEX idx_tweets_quoted_tweet_id;
+
 ALTER TABLE tweets
     DROP COLUMN quotes_count;
 

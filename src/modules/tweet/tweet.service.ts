@@ -149,7 +149,7 @@ class TweetService {
 
                 //if the tweet is a quote tweet, update the quote_tweets count in the tweet table
                 if(deletedTweet.attachment_tweet_id !== null) {
-                    const updatedTweet = await TweetDal.updateTweet(client, {tweetId: deletedTweet.attachmentTweetId, quote: false});
+                    const updatedTweet = await TweetDal.updateTweet(client, {tweetId: deletedTweet.attachment_tweet_id, quote: false});
                     finalOpsResult.push(updatedTweet);
                 }
 
@@ -213,6 +213,17 @@ class TweetService {
             const finalOpsResult = await UtilsService.transactionWrapper(client, ops);
 
             return finalOpsResult[0]; //0th index will always be the created tweet
+        } catch (err) {
+            throw err;
+        } finally {
+            client.release();
+        }
+    }
+
+    async getTweetEngagements(tweetId: number) {
+        const client = await this.pgPool.connect();
+        try {
+            return TweetDal.getTweetEngagements(client, tweetId);
         } catch (err) {
             throw err;
         } finally {
