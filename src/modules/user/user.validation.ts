@@ -18,18 +18,18 @@ export const UpdateUserSchema = Joi.object({
     dob: Joi.string().isoDate().optional(),
     profile_pic: Joi.string().uri().optional(),
     cover_pic: Joi.string().uri().optional(),
-})
+});
 
 export const UserForgotPasswordSchema = Joi.object({
     userIdentity: Joi.string().trim().required(),
-})
+});
 
 export const UserForgotPasswordQueryParamsSchema = Joi.object({
     token: Joi.string().trim().required(),
-})
+});
 
 export const UserResetPasswordSchema = Joi.object({
     password: Joi.string().trim().required(),
     confirmPassword: Joi.string().trim().required().valid(Joi.ref('password')),
     userId: Joi.number().integer().required(),
-})
+});

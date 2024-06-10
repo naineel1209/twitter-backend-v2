@@ -204,8 +204,7 @@ class TweetService {
                 finalOpsResult.push(updatedUser);
 
                 //update the quote_tweets count in the tweet table
-                const updatedTweet = await TweetDal.updateTweet(client, {tweetId: data.attachmentTweetId, quote: true})
-
+                await TweetDal.updateTweet(client, {tweetId: data.attachmentTweetId, quote: true});
                 return finalOpsResult;
             }
 
@@ -223,7 +222,7 @@ class TweetService {
     async getTweetEngagements(tweetId: number) {
         const client = await this.pgPool.connect();
         try {
-            return TweetDal.getTweetEngagements(client, tweetId);
+            return await TweetDal.getTweetEngagements(client, tweetId);
         } catch (err) {
             throw err;
         } finally {

@@ -162,16 +162,16 @@ export class TweetController {
         }
     }
 
-    static getTweetEngagements(req: Request, res: Response, next: NextFunction) {
+    static async getTweetEngagements(req: Request, res: Response, next: NextFunction) {
         try{
             // @ts-ignore
-            const {id: tweetId} = req.params;
+            const {tweetId} = req.params;
 
-            const engagements = tweetService.getTweetEngagements(Number(tweetId));
+            const engagements = await tweetService.getTweetEngagements(Number(tweetId));
 
-                return res.status(httpStatus.OK).json({
+            return res.status(httpStatus.OK).json({
                 message: 'Tweet engagements fetched successfully',
-                tweetId
+                engagements
             })
         }catch(err){
             next(err);

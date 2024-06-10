@@ -21,4 +21,4 @@ export const localAuthStrategy = new LocalStrategy({
             message: 'Incorrect username or password'
         });
     }
-})
+});

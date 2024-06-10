@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer'
+import nodemailer from 'nodemailer';
 import processEnv from '../constants/env/env.constants';
 
 const transporter = nodemailer.createTransport({

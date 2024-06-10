@@ -90,7 +90,7 @@ export class TweetDal {
             const createTweetQueryValues: any[] = [];
             const createTweetParameters: string[] = [];
 
-            Object.keys(data).forEach((key, index) => {
+            Object.keys(data).forEach((key, _) => {
                 if (key === 'attachmentTweetId') {
                     createTweetQueryFields.push('attachment_tweet_id')
                     createTweetParameters.push(`$${createTweetQueryValues.length + 1}`)
@@ -180,7 +180,7 @@ export class TweetDal {
             ${((data.tweet || data.delete) && data.userId) ? `AND user_id = $${updateTweetQueryValues.length + 2}` : ''} 
             RETURNING *;`
             updateTweetQueryValues.push(data.tweetId)
-            if ((data.tweet || data.delete) && data.userId){
+            if ((data.tweet || data.delete) && data.userId) {
                 updateTweetQueryValues.push(data.userId)
             }
 
@@ -302,11 +302,72 @@ export class TweetDal {
         }
     }
 
-    static getTweetEngagements(client: pg.PoolClient, tweetId: number) {
+    static async getTweetEngagements(client: pg.PoolClient, tweetId: number) {
         //get the details of the quotes on the tweet, likes on the tweet and retweets on the tweet
-        const getTweetsEngagementsQueryText = ``;
+        let getTweetsEngagementsQueryText : string;
         const getTweetsEngagementsQueryValues = [];
 
-        return Promise.resolve({});
+        //get the quotes of the tweet, user details of the quotes, users who liked this tweet, users who retweeted this tweet
+        //we will resort to json_agg queries
+
+        getTweetsEngagementsQueryText = `
+            WITH quote_tweets AS (SELECT qt.attachment_tweet_id AS attachment_tweet_id,
+                                         JSON_AGG(JSON_BUILD_OBJECT(
+                                                 'quote_id', qt.id,
+                                                 'quote_content', qt.tweet,
+                                                 'quote_user_id', qu.id,
+                                                 'quote_username', qu.username
+                                                  ))            AS quotes
+                                  FROM tweets qt
+                                           LEFT JOIN users qu ON qt.user_id = qu.id
+                                  GROUP BY qt.attachment_tweet_id),
+                 retweets AS (SELECT r.tweet_id  AS tweet_id,
+                                     JSON_AGG(JSON_BUILD_OBJECT(
+                                             'retweet_id', r.id,
+                                             'retweet_user_id', ru.id,
+                                             'retweet_username', ru.username
+                                              )) AS retweets
+                              FROM retweets r
+                                       LEFT JOIN users ru ON r.user_id = ru.id
+                              GROUP BY r.tweet_id),
+                 likes AS (SELECT l.tweet_id  AS tweet_id,
+                                  JSON_AGG(JSON_BUILD_OBJECT(
+                                          'like_id', l.id,
+                                          'like_user_id', lu.id,
+                                          'like_username', lu.username
+                                           )) AS likes
+                           FROM likes l
+                                    LEFT JOIN users lu ON l.user_id = lu.id
+                           GROUP BY l.tweet_id)
+            SELECT t.id                       AS tweet_id,
+                   t.tweet                    AS tweet_content,
+                   COALESCE(qt.quotes, '[]')  AS quotes,
+                   COALESCE(r.retweets, '[]') AS retweets,
+                   COALESCE(l.likes, '[]')    AS likes
+            FROM tweets t
+                     LEFT JOIN quote_tweets qt ON t.id = qt.attachment_tweet_id
+                     LEFT JOIN retweets r ON t.id = r.tweet_id
+                     LEFT JOIN likes l ON t.id = l.tweet_id
+            WHERE t.id = $1;
+        `;
+
+        getTweetsEngagementsQueryValues.push(tweetId);
+
+        const getTweetsEngagementsQuery = {
+            text: getTweetsEngagementsQueryText,
+            values: getTweetsEngagementsQueryValues,
+        };
+
+        const result = await client.query(getTweetsEngagementsQuery);
+
+        if (result.rowCount === 0) {
+            throw new CustomError('Tweet not found', httpStatus.NOT_FOUND, {
+                message: 'Tweet not found',
+                error: 'Tweet not found',
+                details: tweetId
+            })
+        }
+
+        return result.rows[0];
     }
 }

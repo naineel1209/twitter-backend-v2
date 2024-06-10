@@ -9,7 +9,7 @@ const consoleFormat = winston.format.combine(
         format: 'YYYY-MM-DD HH:mm:ss'
     }),
     winston.format.printf(info => {
-        return `[${info.timestamp}] == ${info.level} :: ${info.message}`
+        return `[${info.timestamp}] == ${info.level} :: ${info.message}`;
     }));
 
 const fileFormat = winston.format.combine(
@@ -17,7 +17,7 @@ const fileFormat = winston.format.combine(
         format: 'YYYY-MM-DD HH:mm:ss'
     }),
     winston.format.printf(info => {
-        return `[${info.timestamp}] == ${info.level} :: ${info.message}`
+        return `[${info.timestamp}] == ${info.level} :: ${info.message}`;
     }), winston.format.uncolorize());
 
 const logger = winston.createLogger({
@@ -29,6 +29,6 @@ const logger = winston.createLogger({
         new winston.transports.File({filename: `${filePath}/errors.log`, level: 'error', format: fileFormat}),
         new winston.transports.File({filename: `${filePath}/combined.log`, format: fileFormat})
     ]
-})
+});
 
 export default logger;
