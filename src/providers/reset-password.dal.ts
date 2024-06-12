@@ -1,12 +1,12 @@
 import Redis from 'ioredis';
 import httpStatus from 'http-status';
 import {CustomError} from '../errors/custom-error';
+import {SERVICE_NAME, USER_PASSWORD_UPDATED} from '../modules/user/user.helper';
 
 export class ResetPasswordDal {
     static async checkUserPasswordUpdateStatus(redisClient: Redis, userId: number) {
         try {
-            //TODO - rewrite the keys of all the redis keys as constants in a separate file for more maintainability
-            const res = await redisClient.get(`twitter-backend-v2:user-password-updated:${userId}`);
+            const res = await redisClient.get(`${SERVICE_NAME}:${USER_PASSWORD_UPDATED}:${userId}`);
 
             if (res === null || !res || res !== 'true') {
                 return false;
@@ -20,7 +20,7 @@ export class ResetPasswordDal {
 
     static async deleteUserPasswordUpdateStatus(redisClient: Redis, userId: number) {
         try {
-            const res = await redisClient.del(`twitter-backend-v2:user-password-updated:${userId}`);
+            const res = await redisClient.del(`${SERVICE_NAME}:${USER_PASSWORD_UPDATED}:${userId}`);
 
             if (res === 0) {
                 throw new CustomError('Token not found', httpStatus.NOT_FOUND, {

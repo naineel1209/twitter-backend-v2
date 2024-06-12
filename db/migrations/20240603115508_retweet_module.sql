@@ -31,7 +31,17 @@ CREATE INDEX idx_retweets_user_id ON retweets(user_id);
 CREATE INDEX idx_likes_tweet_id ON likes(tweet_id);
 CREATE INDEX idx_likes_user_id ON likes(user_id);
 
+ALTER TABLE users
+    ADD COLUMN tweets_count INTEGER DEFAULT 0;
+ALTER TABLE users
+    ADD COLUMN liked_tweets_count INTEGER DEFAULT 0;
+
 -- migrate:down
+
+ALTER TABLE users
+    DROP COLUMN tweets_count;
+ALTER TABLE users
+    DROP COLUMN liked_tweets_count;
 
 DROP INDEX idx_likes_user_id;
 DROP INDEX idx_likes_tweet_id;

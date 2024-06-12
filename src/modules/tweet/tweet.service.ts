@@ -30,10 +30,6 @@ class TweetService {
                 const createdTweet = await TweetDal.createTweet(client, data);
                 finalOpsResult.push(createdTweet);
 
-                //update the tweets count in the user table
-                const updatedUser = await UserDal.updateUser(client, {userId: data.userId, tweets_count: true})
-                finalOpsResult.push(updatedUser);
-
                 return finalOpsResult;
             }
 
@@ -75,13 +71,6 @@ class TweetService {
                 const insertLike = await TweetDal.insertLike(client, data);
                 finalOpsResult.push(insertLike);
 
-                //update the liked_tweets_count in the user table
-                const updateUserLikedTweetsCount = await UserDal.updateUser(client, {
-                    userId: data.userId as number,
-                    liked_tweets_count: true
-                });
-                finalOpsResult.push(updateUserLikedTweetsCount);
-
                 return finalOpsResult;
             }
 
@@ -112,12 +101,6 @@ class TweetService {
                 const deleteLike = await TweetDal.deleteLike(client, data);
                 finalOpsResult.push(deleteLike);
 
-                //update the liked_tweets_count in the user table
-                await UserDal.updateUser(client, {
-                    userId: data.userId as number,
-                    liked_tweets_count: false
-                });
-
                 return finalOpsResult;
             }
 
@@ -143,13 +126,12 @@ class TweetService {
                 const deletedTweet = await TweetDal.updateTweet(client, data); //delete: true in data
                 finalOpsResult.push(deletedTweet);
 
-                //update the tweets count in the user table
-                const updatedUser = await UserDal.updateUser(client, {userId: data.userId as number, tweets_count: false})
-                finalOpsResult.push(updatedUser);
-
-                //if the tweet is a quote tweet, update the quote_tweets count in the tweet table
-                if(deletedTweet.attachment_tweet_id !== null) {
-                    const updatedTweet = await TweetDal.updateTweet(client, {tweetId: deletedTweet.attachment_tweet_id, quote: false});
+                //if the tweet is a quote tweet, update the quote_tweets count in the main tweet table
+                if (deletedTweet.attachment_tweet_id !== null) {
+                    const updatedTweet = await TweetDal.updateTweet(client, {
+                        tweetId: deletedTweet.attachment_tweet_id,
+                        quote: false
+                    });
                     finalOpsResult.push(updatedTweet);
                 }
 
