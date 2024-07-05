@@ -1,8 +1,7 @@
 import env from './env.validation';
-import {IEnv} from './env';
 
 //freezing the object makes it immutable - this is a good practice to prevent accidental changes
-const processEnv: Readonly<IEnv> = Object.freeze({
+const processEnv = Object.freeze({
     PORT: env.PORT as string,
     NODE_ENV: env.NODE_ENV as string,
     DATABASE_URL: env.DATABASE_URL as string,
@@ -18,6 +17,10 @@ const processEnv: Readonly<IEnv> = Object.freeze({
     REDIS_PASSWORD: env.REDIS_PASSWORD as string,
     REDIS_PORT: env.REDIS_PORT as string,
     REDIS_HOST: env.REDIS_HOST as string,
+    CONSOLE_LOG: env.CONSOLE_LOG as string,
+    FILE_LOG: env.FILE_LOG as string,
+    DISCORD_LOG: env.DISCORD_LOG as string,
+    DISCORD_WEBHOOK: env.DISCORD_WEBHOOK as string,
 })
 
 export default processEnv;

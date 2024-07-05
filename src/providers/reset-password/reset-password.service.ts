@@ -1,5 +1,5 @@
 import Redis from 'ioredis';
-import redisClient from '../../config/redis.config';
+import redisClient from '../../../config/redis.config';
 import {ResetPasswordDal} from './reset-password.dal';
 
 class ResetPasswordService {

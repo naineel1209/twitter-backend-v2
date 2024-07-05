@@ -10,7 +10,7 @@ import {
     UserForgotPasswordSchema,
     UserResetPasswordSchema
 } from './user.validation';
-import {allowResetPasswordMiddleware} from '../../providers/reset-password-middleware';
+import {allowResetPasswordMiddleware} from '../../providers/reset-password/reset-password-middleware';
 
 const router: Router = Router();
 
@@ -24,7 +24,7 @@ router
     .get('/forgot-password', QueryParamsRequestValidator(UserForgotPasswordSchema), UserController.forgotPassword)
     .get('/verify-token', QueryParamsRequestValidator(UserForgotPasswordQueryParamsSchema), UserController.verifyToken)
     .post('/reset-password', RequestBodyValidator(UserResetPasswordSchema), allowResetPasswordMiddleware, UserController.resetPassword)
-    
+
     .get('/', QueryParamsRequestValidator(GetAllUsersQueryParamsSchema), UserController.getAllUsers)
     .get('/:userId', RequestParamsValidator(GetSingleUserParamsSchema), UserController.getSingleUser)
     .get('/:userId/followers', checkAuthenticated, RequestParamsValidator(GetSingleUserParamsSchema), UserController.getUserFollowers)

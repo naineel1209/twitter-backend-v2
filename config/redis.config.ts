@@ -23,7 +23,7 @@ redisClient.on('connect', async () => {
             logger.error(`Error pinging Redis: ${err}`);
         } else {
             const endTime = performance.now();
-            logger.info(`Redis pinged successfully in ${endTime - startTime}ms`);
+            logger.info(`Redis pinged successfully in ${(endTime - startTime).toFixed(3)}ms`);
         }
     });
 });

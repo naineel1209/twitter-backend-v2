@@ -1,4 +1,4 @@
-import dotenv from 'dotenv'
+import dotenv from 'dotenv-safe'
 import Joi from 'joi'
 import logger from '../../config/winston.config';
 
@@ -20,6 +20,10 @@ const envValidationSchema = Joi.object({
     REDIS_PASSWORD: Joi.string().trim().required(),
     REDIS_PORT: Joi.number(),
     REDIS_HOST: Joi.string().trim().required(),
+    CONSOLE_LOG: Joi.string().valid('true', 'false').default('true'),
+        FILE_LOG: Joi.string().valid('true', 'false').default('true'),
+            DISCORD_LOG : Joi.string().valid('true', 'false').default('true'),
+                DISCORD_WEBHOOK: Joi.string().uri().required()
 })
 
 //this will throw an error if any of the env variables are invalid

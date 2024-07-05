@@ -1,7 +1,7 @@
 import Redis from 'ioredis';
 import httpStatus from 'http-status';
-import {CustomError} from '../errors/custom-error';
-import {SERVICE_NAME, USER_PASSWORD_UPDATED} from '../modules/user/user.helper';
+import {CustomError} from '../../errors/custom-error';
+import {SERVICE_NAME, USER_PASSWORD_UPDATED} from '../../modules/user/user.helper';
 
 export class ResetPasswordDal {
     static async checkUserPasswordUpdateStatus(redisClient: Redis, userId: number) {

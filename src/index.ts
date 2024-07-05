@@ -1,7 +1,6 @@
 import express, {NextFunction} from 'express'
 import * as http from 'node:http';
 import logger from '../config/winston.config'
-import dotenv from 'dotenv'
 import indexRouter from './routes/index.route'
 import processEnv from '../constants/env/env.constants';
 import httpStatus from 'http-status';
@@ -17,7 +16,6 @@ import {CustomError} from './errors/custom-error';
 import transporter from '../config/nodemailer.config';
 import redisClient from '../config/redis.config';
 
-dotenv.config()
 
 const app = express()
 const server = http.createServer(app)
@@ -97,7 +95,6 @@ app.use((err: unknown, req: express.Request, res: express.Response, _: NextFunct
             message: 'Internal Server Error',
             error: 'Internal Server Error'
         })
-
     }
 })
 

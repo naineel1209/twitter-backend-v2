@@ -1,6 +1,6 @@
 import {NextFunction, Request, Response} from 'express';
 import resetPasswordService from './reset-password.service';
-import {CustomError} from '../errors/custom-error';
+import {CustomError} from '../../errors/custom-error';
 import httpStatus from 'http-status';
 
 export const allowResetPasswordMiddleware = async (req: Request, res: Response, next: NextFunction) => {
